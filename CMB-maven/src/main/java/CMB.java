@@ -25,12 +25,8 @@ public class CMB {
         createFichier();
         //TODO lien vers un menu principal en console
         //TODO pouvoir faire une recherche dans la BD via cette interface
-        try {
-            findFiles(new File(""));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         fW.fermerFluxWriter();
+        fR.fermerFluxReader();
     }
 
     /**
@@ -55,18 +51,21 @@ public class CMB {
                 fW = new FichierW(cheminBD()+inter()+"Films.bd");
                 fW.ouvrirFuxWriter(false);
                 System.out.println("Fichier cree");
+                fR = new FichierR(cheminBD()+inter()+"Films.bd");
+                fR.ouvrirFluxReader();
             }else{
                 System.exit(-1);
             }
         } else {
             fW = new FichierW(cheminBD()+inter()+"Films.bd");
             fW.ouvrirFuxWriter(false);
+            fR.ouvrirFluxReader();
         }
     }
     /*
         Fonctions pour réaliser la liste de films
      */
-    private static void findFiles(File file1)throws IOException
+    public static void findFiles(File file1)throws IOException
     {
         File[] list = file1.listFiles();
         if(list!=null)
@@ -78,13 +77,13 @@ public class CMB {
                     findFiles(file2);
                 }
                 else if (file2.getName().contains(".avi")) {
-                    fW.ecrireString(file2.getName());
+                    fW.ecrireString(file2.getPath()+file2.getName());
                 }else if (file2.getName().contains(".mp4")) {
-                    fW.ecrireString(file2.getName());
+                    fW.ecrireString(file2.getPath()+file2.getName());
                 }else if (file2.getName().contains(".mkv")) {
-                    fW.ecrireString(file2.getName());
+                    fW.ecrireString(file2.getPath()+file2.getName());
                 }else if (file2.getName().contains(".mov")) {
-                    fW.ecrireString(file2.getName());
+                    fW.ecrireString(file2.getPath()+file2.getName());
                 }
             }
         }
@@ -95,7 +94,7 @@ public class CMB {
      */
     private static void searchWord()
     {
-
+        fR.ouvrirFluxReader();
     }
     /*
         Fonctions Usuelles
@@ -119,13 +118,13 @@ public class CMB {
         }
         return false;
     }
-    private static String dateActuelle()
+    public static String dateActuelle()
     {
         DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd MM yyyy");
         LocalDate localDate = LocalDate.now();
         return dateFormat.format(localDate);
     }
-    private static String cheminBD()
+    public static String cheminBD()
     {
         String path = null;
         final String homePath = System.getProperty("user.home");
@@ -139,18 +138,9 @@ public class CMB {
         }
         return path;
     }
-    private static String inter()
+    public static String inter()
     {
-        String inter = null;
-        if(OS.contains("Windows")){
-            inter = "\\";
-        }else if (OS.contains("Linux")){
-            inter = "/";
-        }else{
-            System.err.println("Error OS not supported");
-            System.exit(-1);
-        }
-        return inter;
+        return File.separator;
     }
     private static String getOsName()
     {
