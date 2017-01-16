@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/CMB.iml" filepath="$PROJECT_DIR$/CMB.iml" />
+      <module fileurl="file://$PROJECT_DIR$/CMB-maven/CMB-maven.iml" filepath="$PROJECT_DIR$/CMB-maven/CMB-maven.iml" />
+    </modules>
+  </component>
+</project>

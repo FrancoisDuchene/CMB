@@ -1,9 +1,5 @@
 import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.IOException;
 
 /**
  * Created by vinsifroid on 11/01/17.
@@ -11,14 +7,13 @@ import java.io.IOException;
 public class CMB_gui extends JFrame{
     // Barre de menu
     private JMenuBar menuBar;
-    private JMenu Quitter;
+    private JMenu Fichier;
     private JMenu aPropos;
-    private JMenu majBD;
-    private JMenu rechMot;
 
-    // Layouts
-    private CardLayout cl;
-    private JPanel card;
+    private JMenuItem majBD;
+    private JMenuItem rechMot;
+    private JMenuItem quit;
+    private JMenuItem APropo;
 
     public CMB_gui()
     {
@@ -32,50 +27,63 @@ public class CMB_gui extends JFrame{
 
         // Caractéristiques
 
-        // Barre de menu
-        Quitter.addActionListener(new ActionListener(){
-        public void actionPerformed(ActionEvent event)
-        {System.exit(0);}});
-
-        aPropos.addActionListener(new ActionListener(){
-        public void actionPerformed(ActionEvent event)
-        {
-            JOptionPane.showMessageDialog(null, "Version 0.1 : Build du " + CMB.dateActuelle() + "\nDéveloppeur : vinsifroid",
-                    "A propos", JOptionPane.INFORMATION_MESSAGE);
-        }});
-
-        majBD.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent event)
-            {
-                majBD();
-            }
-        });
-
-        rechMot.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-
-            }
-        });
-
         // Panneaux
-        // Pile
-        card = new JPanel();
-        cl = new CardLayout(30,10);
-        card.setLayout(cl);
         // Panneau principal
         JPanel princ = new JPanel();
-        GridLayout gd = new GridLayout();
-        gd.setColumns(3);
-        gd.setRows(10);
-        gd.setHgap(50);
-        gd.setVgap(30);
-        princ.setLayout(gd);
+        GroupLayout gl = new GroupLayout(princ);
+        princ.setLayout(gl);
+        gl.setAutoCreateContainerGaps(true);
+        gl.setAutoCreateGaps(true);
+        // On cree un JTextArea qui contiendra la liste des noms de fichiers
+        JTextArea area = new JTextArea();
+        JScrollPane spane = new JScrollPane(area);
+        area.setLineWrap(true);
+        area.setWrapStyleWord(true);
+        area.setEditable(false);
+        area.setVisible(true);
+        gl.setHorizontalGroup(gl.createParallelGroup().addComponent(spane));
+        gl.setVerticalGroup(gl.createSequentialGroup().addComponent(spane));
+        // Barre de menu
+        menuBar = new JMenuBar();
+        Fichier = new JMenu("Fichier");
+        aPropos = new JMenu("A propos");
+
+        quit = new JMenuItem("Quitter");
+        quit.addActionListener(event -> {
+            CMB.getfW().fermerFluxWriter();
+            CMB.getfR().fermerFluxReader();
+            System.exit(0);
+        });
+        majBD = new JMenuItem("Mise à jour");
+        majBD.addActionListener(event -> majBD());
+        rechMot = new JMenuItem("Rechercher");
+        rechMot.addActionListener(actionEvent -> {
+            String rep = JOptionPane.showInputDialog(null, "Introduisez un mot à chercher", "Requête",
+                    JOptionPane.QUESTION_MESSAGE);
+            java.util.List<String> listMots = CMB.searchWord(rep);
+            area.setText("");
+            for (String listMot : listMots) {
+                // Quand on rencontre un mot de la liste, on l'ajoute a l'area
+                area.append(listMot + "\n");
+            }
+            //Make sure the new text is visible, even if there
+            //was a selection in the text area.
+            area.setCaretPosition(area.getDocument().getLength());
+        });
+        APropo = new JMenuItem("A propos");
+        APropo.addActionListener(event -> JOptionPane.showMessageDialog(null, "Version 0.1 : Build du " + CMB.dateActuelle() + "\nDéveloppeur : vinsifroid",
+                "A propos", JOptionPane.INFORMATION_MESSAGE));
 
         // On ajoute les coomposants
-        menuBar.add(Quitter);
+        Fichier.add(majBD);
+        Fichier.add(rechMot);
+        Fichier.add(quit);
+        aPropos.add(APropo);
+        menuBar.add(Fichier);
         menuBar.add(aPropos);
-        menuBar.add(majBD);
+        this.setJMenuBar(menuBar);
+        this.getContentPane().add(princ);
+        pack();
         this.setVisible(true);
     }
 
@@ -84,13 +92,10 @@ public class CMB_gui extends JFrame{
         JFileChooser fc = new JFileChooser();
         fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 
-        fc.showOpenDialog(this.getComponent(1));
+        fc.showOpenDialog(this.getComponent(0));
         final  File selFile = fc.getSelectedFile();
 
-        try {
-            CMB.findFiles(selFile);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        CMB.findFiles(selFile);
+        CMB.getfW().forcerEcriture();
     }
 }
