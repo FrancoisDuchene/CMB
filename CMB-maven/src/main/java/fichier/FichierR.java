@@ -8,12 +8,12 @@ import java.io.*;
  * @since v1.0-eta
  */
 @SuppressWarnings("serial")
-public class FichierR extends File
+public class FichierR
 {
 	/**
 	 * Le nom du fichier ainsi que son chemin (les 2 en même temps)
 	 */
-	private String filename;
+	private final String filename;
 	private BufferedReader BR;
 	/**
 	 * true quand un flux est ouvert et false quand un flux est ferme
@@ -22,17 +22,16 @@ public class FichierR extends File
 
 	public FichierR(String filename)
 	{
-		super(filename);
-		if(!exists() && !isFile())
+		File f = new File(filename);
+		if(!f.exists() && !f.isFile())
 		{
 			try {
 				throw new FileNotFoundException(filename + " - wrong filename or path");
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
-				System.err.println(e);
 			}
 		}
-		this.filename = filename;		
+		this.filename = filename;
 		BR = null;
 		ouvert = false;
 	}
@@ -49,7 +48,7 @@ public class FichierR extends File
 			try{
 				BR = new BufferedReader(new FileReader(filename));
 			}catch(FileNotFoundException e){
-				System.err.println(e);
+				e.printStackTrace();
 				System.exit(-1);
 			}
 			ouvert = true;
@@ -62,7 +61,7 @@ public class FichierR extends File
 			try{
 				BR.close();
 			}catch(IOException e){
-				System.err.println(e);
+				e.printStackTrace();
 				System.exit(-1);
 			}
 			ouvert = false;
@@ -75,17 +74,17 @@ public class FichierR extends File
 	 * @return the current String read from the file
 	 */
 	public String lire() {
-		if(canRead())
-		{
-			try {
-				String chaine = BR.readLine();
-				return chaine;
+		File f = new File(filename);
+		try {
+			if(f.canRead() && BR.ready())
+			{
+				return BR.readLine();
 			}
-			catch(IOException e) {		
-				System.err.println(e.getMessage());
-				System.exit(-1);
-				return "Error IOException";
-			}
+		}
+		catch(IOException e) {
+			System.err.println(e.getMessage());
+			System.exit(-1);
+			return "Error IOException";
 		}
 		return "Error don't have the right to read the file";
 	}
@@ -94,20 +93,21 @@ public class FichierR extends File
 	 * @return the current String read from the file
 	 */
 	public String lire(int n) {
-		if(canRead())
-		{
-			try {
+		File f = new File(filename);
+		try {
+			if(f.canRead() && BR.ready())
+			{
 				String chaine = "";
 				for(int i =0; i<n;i++) {
 					chaine = BR.readLine();
 				}
 				return chaine;
 			}
-			catch(IOException e) {
-				System.err.println(e.getMessage());
-				System.exit(-1);
-				return "Error IOException";
-			}
+		}
+		catch(IOException e) {
+			System.err.println(e.getMessage());
+			System.exit(-1);
+			return "Error IOException";
 		}
 		return "Error don't have the right to read the file";
 	}
@@ -120,11 +120,11 @@ public class FichierR extends File
 			BR = new BufferedReader(new FileReader(new File(filename)));
 		}
 		catch (FileNotFoundException e) {
-			System.err.println(e);
+			e.printStackTrace();
 			System.exit(-1);
 		}
 	}
-	
+
 	/**
 	 * Check in the file if the word is inside
 	 * @param mot1 the String to check
@@ -132,8 +132,9 @@ public class FichierR extends File
 	 */
 	public boolean equalsMots(String mot1) {
 		setNewBufferedReader();
-		String mot2 = "";
-		for(int i = 0; i < length();i++) {
+		String mot2;
+		File f = new File(filename);
+		for(int i = 0; i < f.length();i++) {
 			mot2 = lire(i);
 			if(mot1.equals(mot2)) {
 				return false;
@@ -141,32 +142,51 @@ public class FichierR extends File
 		}
 		return true;
 	}
-	
+
 	/**
 	 * Go to the end of File
 	 */
 	public void toEnd() {
-		String str1 = "";
+		String str1;
 		do {
 			str1 = lire();
 		}while(str1 != null);
 	}
-	
+
 	/**
-	 * @return Int
+	 * @return Long
 	 *  The function return the length of the file currently used 
 	 */
-	public int longueurFichier() {
-		String str1 = "";
-		int longueur = 0;
-		for(int i=0; ;i++) {
-			str1 = lire();
-			if(str1 == null) {
-				longueur = i;
-				setNewBufferedReader();
-				break;
+	public long longueurFichier() {
+        InputStream is = null;
+        try{
+			is = new BufferedInputStream(new FileInputStream(filename));
+			byte[] c = new byte[1024];
+			long count = 0;
+			int readChars = 0;
+			boolean endsWithoutNewLine = false;
+			while ((readChars = is.read(c)) != -1) {
+				for (int i = 0; i < readChars; ++i) {
+					if (c[i] == '\n')
+						++count;
+				}
+				endsWithoutNewLine = (c[readChars - 1] != '\n');
 			}
-		}		
-		return longueur;
+			if(endsWithoutNewLine) {
+				++count;
+			}
+			return count;
+		}catch (IOException e) {
+            e.printStackTrace();
+		}
+		finally {
+            try{
+                is.close();
+            }catch(IOException e2){
+                e2.printStackTrace();
+                System.exit(-1);
+            }
+		}
+		return 0;
 	}
 }

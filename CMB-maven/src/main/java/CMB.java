@@ -1,10 +1,13 @@
 import fichier.FichierR;
 import fichier.FichierW;
 
+import javax.swing.*;
 import java.io.File;
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by vinsifroid on 3/11/16.
  */
@@ -25,8 +28,7 @@ public class CMB {
         createFichier();
         //TODO lien vers un menu principal en console
         //TODO pouvoir faire une recherche dans la BD via cette interface
-        fW.fermerFluxWriter();
-        fR.fermerFluxReader();
+        SwingUtilities.invokeLater(() -> new CMB_gui());
     }
 
     /**
@@ -48,24 +50,25 @@ public class CMB {
             // Sinon on le crée
             if(FichierW.creerNouveauFichier(cheminBD()+inter()+"Films.bd")) {
                 // On doit s'arranger pour que dans tous les cas, on ouvre le flux
-                fW = new FichierW(cheminBD()+inter()+"Films.bd");
-                fW.ouvrirFuxWriter(false);
+                setfW(new FichierW(cheminBD()+inter()+"Films.bd"));
+                getfW().ouvrirFuxWriter(true);
                 System.out.println("Fichier cree");
-                fR = new FichierR(cheminBD()+inter()+"Films.bd");
-                fR.ouvrirFluxReader();
+                setfR(new FichierR(cheminBD()+inter()+"Films.bd"));
+                getfR().ouvrirFluxReader();
             }else{
                 System.exit(-1);
             }
         } else {
-            fW = new FichierW(cheminBD()+inter()+"Films.bd");
-            fW.ouvrirFuxWriter(false);
-            fR.ouvrirFluxReader();
+            setfW(new FichierW(cheminBD()+inter()+"Films.bd"));
+            getfW().ouvrirFuxWriter(true);
+            setfR(new FichierR(cheminBD()+inter()+"Films.bd"));
+            getfR().ouvrirFluxReader();
         }
     }
     /*
         Fonctions pour réaliser la liste de films
      */
-    public static void findFiles(File file1)throws IOException
+    public static void findFiles(File file1)
     {
         File[] list = file1.listFiles();
         if(list!=null)
@@ -77,13 +80,13 @@ public class CMB {
                     findFiles(file2);
                 }
                 else if (file2.getName().contains(".avi")) {
-                    fW.ecrireString(file2.getPath()+file2.getName());
+                    getfW().ecrireString(file2.getPath()+file2.getName());
                 }else if (file2.getName().contains(".mp4")) {
-                    fW.ecrireString(file2.getPath()+file2.getName());
+                    getfW().ecrireString(file2.getPath()+file2.getName());
                 }else if (file2.getName().contains(".mkv")) {
-                    fW.ecrireString(file2.getPath()+file2.getName());
+                    getfW().ecrireString(file2.getPath()+file2.getName());
                 }else if (file2.getName().contains(".mov")) {
-                    fW.ecrireString(file2.getPath()+file2.getName());
+                    getfW().ecrireString(file2.getPath()+file2.getName());
                 }
             }
         }
@@ -92,9 +95,20 @@ public class CMB {
     /*
         Fonctions pour rechercher dans la liste
      */
-    private static void searchWord()
+    public static List<String> searchWord(String motAChercher)
     {
-        fR.ouvrirFluxReader();
+        List<String> liste = new ArrayList<>();
+        String tmp = null;
+        final long taille = getfR().longueurFichier();
+        for(int i = 0; i < taille; i++)
+        {
+            tmp = getfR().lire();
+            if(tmp.contains(motAChercher))
+            {
+                liste.add(tmp);
+            }
+        }
+        return liste;
     }
     /*
         Fonctions Usuelles
@@ -120,7 +134,7 @@ public class CMB {
     }
     public static String dateActuelle()
     {
-        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd MM yyyy");
+        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         LocalDate localDate = LocalDate.now();
         return dateFormat.format(localDate);
     }
@@ -146,5 +160,21 @@ public class CMB {
     {
         if(OS == null) { OS = System.getProperty("os.name"); }
         return OS;
+    }
+
+    public static FichierW getfW() {
+        return fW;
+    }
+
+    public static void setfW(FichierW fW) {
+        CMB.fW = fW;
+    }
+
+    public static FichierR getfR() {
+        return fR;
+    }
+
+    public static void setfR(FichierR fR) {
+        CMB.fR = fR;
     }
 }

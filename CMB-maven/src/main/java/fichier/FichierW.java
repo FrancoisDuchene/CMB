@@ -8,16 +8,16 @@ import java.io.*;
  * @since v1.0-eta
  */
 @SuppressWarnings("serial")
-public class FichierW extends File 
+public class FichierW
 {
-	private String filename;
+	private final String filename;
 	private PrintWriter PW;
 	private boolean ouvert;
 
 	public FichierW(String filename)
 	{
-		super(filename);
-		if(!exists() && !isFile())
+		File f = new File(filename);
+		if(!f.exists() && !f.isFile())
 		{
 			try {
 				throw new FileNotFoundException(filename + " - wrong filename or path");
@@ -35,8 +35,7 @@ public class FichierW extends File
     {
         File bd = new File(path);
         try {
-            if(bd.createNewFile()){return true;}
-			else{return false;}
+			return bd.createNewFile();
         } catch (IOException e) {
             e.printStackTrace();
             return false;
@@ -79,7 +78,7 @@ public class FichierW extends File
 	 * @param tmp is the integer to write in the next line of the file
 	 */
 	public void ecrireInt(int tmp)
-	{		
+	{
 		String chaine = String.valueOf(tmp);
 		PW.println(chaine);	
 	}
@@ -108,7 +107,7 @@ public class FichierW extends File
 			PW = new PrintWriter(new FileWriter(filename));
 		}
 		catch (IOException e) {			
-			System.err.println(e);
+			e.printStackTrace();
 			System.exit(-1);
 		}
 	}
