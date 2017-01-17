@@ -26,8 +26,6 @@ public class CMB {
         OS = getOsName();
         System.out.println("Central Movie Database - " + dateActuelle());
         createFichier();
-        //TODO lien vers un menu principal en console
-        //TODO pouvoir faire une recherche dans la BD via cette interface
         SwingUtilities.invokeLater(() -> new CMB_gui());
     }
 
@@ -70,6 +68,8 @@ public class CMB {
      */
     public static void findFiles(File file1)
     {
+        //TODO lister les fichiers dans l'ordre alphabétique pour pouvoir faire une recherche dichotomique par la suite
+        //TODO ne pas réécrire les mêmes fichiers 2 fois
         File[] list = file1.listFiles();
         if(list!=null)
         {
@@ -101,7 +101,7 @@ public class CMB {
         String tmp = null;
         final long taille = getfR().longueurFichier();
         // Ne surtout pas oublier d'en mettre un nouveau sinon
-        // Il pourrait commencer à lire à la fin du flux
+        // il pourrait commencer à lire à la fin du flux
         getfR().setNewBufferedReader();
         for(int i = 0; i < taille; i++)
         {
