@@ -1,8 +1,37 @@
-import javax.swing.*;
+import javax.swing.GroupLayout;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import java.io.File;
 
+/*
+ This program is an database manager. This source file is the GUI part of it
+ Copyright (C) 2017  Vinsifroid ~ François Duchêne
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 /**
- * Created by vinsifroid on 11/01/17.
+ * Cette classe définit la fenêtre principale de l'application
+ * @author vinsifroid
+ * @since v0.1
  */
 public class CMB_gui extends JFrame{
     // Barre de menu
@@ -60,15 +89,17 @@ public class CMB_gui extends JFrame{
         rechMot.addActionListener(actionEvent -> {
             String rep = JOptionPane.showInputDialog(null, "Introduisez un mot à chercher", "Requête",
                     JOptionPane.QUESTION_MESSAGE);
-            java.util.List<String> listMots = CMB.searchWord(rep);
-            area.setText("");
-            for (String listMot : listMots) {
-                // Quand on rencontre un mot de la liste, on l'ajoute a l'area
-                area.append(listMot + "\n");
+            if(rep != null) {
+                java.util.List<String> listMots = CMB.searchWord(rep);
+                area.setText("");
+                for (String listMot : listMots) {
+                    // Quand on rencontre un mot de la liste, on l'ajoute a l'area
+                    area.append(listMot + "\n");
+                }
+                //Make sure the new text is visible, even if there
+                //was a selection in the text area.
+                area.setCaretPosition(area.getDocument().getLength());
             }
-            //Make sure the new text is visible, even if there
-            //was a selection in the text area.
-            area.setCaretPosition(area.getDocument().getLength());
         });
         APropo = new JMenuItem("A propos");
         APropo.addActionListener(event -> JOptionPane.showMessageDialog(null, "Version 0.1 : Build du " + CMB.dateActuelle() + "\nDéveloppeur : vinsifroid",
@@ -94,8 +125,9 @@ public class CMB_gui extends JFrame{
 
         fc.showOpenDialog(this.getComponent(0));
         final  File selFile = fc.getSelectedFile();
-
-        CMB.findFiles(selFile);
-        CMB.getfW().forcerEcriture();
+        if(selFile != null) {
+            CMB.findFiles(selFile);
+            CMB.getfW().forcerEcriture();
+        }
     }
 }
