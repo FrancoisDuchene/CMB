@@ -98,16 +98,37 @@ public class CMB {
                 {
                     findFiles(file2);
                 }
-                else if (file2.getName().contains(".avi")) {
-                    getfW().ecrireString(file2.getPath()+file2.getName());
-                }else if (file2.getName().contains(".mp4")) {
-                    getfW().ecrireString(file2.getPath()+file2.getName());
-                }else if (file2.getName().contains(".mkv")) {
-                    getfW().ecrireString(file2.getPath()+file2.getName());
-                }else if (file2.getName().contains(".mov")) {
-                    getfW().ecrireString(file2.getPath()+file2.getName());
+                else if (file2.getName().endsWith("avi")) {
+                    final String nom = file2.getPath();
+                    getfW().ecrireString(nom);
+                }else if (file2.getName().endsWith("mp4")) {
+                    final String nom = file2.getPath();
+                    getfW().ecrireString(nom);
+                }else if (file2.getName().endsWith("mkv")) {
+                    final String nom = file2.getPath();
+                    getfW().ecrireString(nom);
+                }else if (file2.getName().endsWith("mov")) {
+                    final String nom = file2.getPath();
+                    getfW().ecrireString(nom);
                 }
             }
+            //On force l'écriture pour être sûr que c'est écrit dans le fichier
+            getfW().forcerEcriture();
+
+            //D'abord on obtient la liste des noms contenus dans la liste
+            //TODO trouver une autre façon de procéder moins consomatrice en ressource
+            String[] listeFichiers = donnerListeFichiers();
+            //TODO corriger le tri par fusion pour gagner en temps
+            //mergeSort(listeFichiers,0,taille-1);
+            bubbleSort(listeFichiers);
+
+            //TODO trouver un autre moyen que d'ouvrir un nouveau flux
+            FichierW editeurTmp = new FichierW(cheminBD()+inter()+"Films.bd");
+            editeurTmp.ouvrirFuxWriter(false);
+            for (int i=0;i<listeFichiers.length;i++) {
+                editeurTmp.ecrireString(listeFichiers[i]);
+            }
+            editeurTmp.fermerFluxWriter();
         }
     }
     /*
@@ -116,9 +137,24 @@ public class CMB {
         et non pas le chemin complet + nom. On pourrait aller commencer par cibler l'endroit précis où on doit insérer
         le nom comme pour la recherche dichotomique.
      */
-    private static void insertName(String filepath, String filename)
+    private static void insertName(String nom)
     {
 
+    }
+    private static void bubbleSort(String[] listeFi)
+    {
+        final int n = listeFi.length;
+        for (int i=1;i<=n;i++)
+        {
+            for(int j=0;j<(n-i);j++)
+            {
+                if(listeFi[j].compareToIgnoreCase(listeFi[j+1]) > 0) {
+                    String tmp = listeFi[j+1];
+                    listeFi[j+1] = listeFi[j];
+                    listeFi[j] = tmp;
+                }
+            }
+        }
     }
 
     /**
@@ -173,6 +209,13 @@ public class CMB {
     /*
         Fonctions pour rechercher dans la liste de mots
      */
+
+    /**
+     * Fonction de recherche naive, il recherche toutes les occurences du mot dans la liste.
+     * Complexité temporelle en O(n) mais spatiale en O(n) également avec n le nombre d'entrées
+     * @param motAChercher le mot à chercher
+     * @return un liste chainée des occurences
+     */
     public static List<String> searchWord(String motAChercher)
     {
         List<String> liste = new ArrayList<>();
@@ -199,7 +242,7 @@ public class CMB {
      * @param max l'indice maximal. Initialement n-1
      * @return l'indice de la clé dans le tableau, -1 si absente
      */
-    private static int BinarySearch(String[] listFiles,String filename,int min, int max)
+    public static int BinarySearch(String[] listFiles,String filename,int min, int max)
     {
         if (min > max)
             return -1;
@@ -217,6 +260,29 @@ public class CMB {
     /*
         Fonctions Usuelles
      */
+    public static String[] donnerListeFichiers()
+    {
+        List<String> liste = new ArrayList<>();
+        final long taille = getfR().longueurFichier();
+        // Ne surtout pas oublier d'en mettre un nouveau sinon
+        // il pourrait commencer à lire à la fin du flux
+        getfR().setNewBufferedReader();
+        for(int i = 0; i < taille; i++) {
+            liste.add(getfR().lire());
+        }
+        return liste.toArray(new String[liste.size()]);
+    }
+    public static String[] donnerListeNomsF()
+    {
+        String []liste = donnerListeFichiers();
+        for (int i=0;i<liste.length;i++) {
+            final String mot = liste[i];
+            //On regarde la dernière occurence de / pour ne prendre que le nom du film sans le chemin
+            final int indice = mot.lastIndexOf(inter());
+            liste[i] = mot.substring(indice);
+        }
+        return liste;
+    }
     /**
      *
      * @param path le chemin du dossier dans lequel chercher
