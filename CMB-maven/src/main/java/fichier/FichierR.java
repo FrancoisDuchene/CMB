@@ -11,6 +11,7 @@ import java.io.InputStream;
 
 /*
  This program is an database manager. This source file is the GUI part of it
+ Central Movie Base, CMB for short, version is currently : 0.1
  Copyright (C) 2017  Vinsifroid ~ François Duchêne
 
  This program is free software: you can redistribute it and/or modify
@@ -131,7 +132,6 @@ public class FichierR
 		catch(IOException e) {
 			System.err.println(e.getMessage());
 			System.exit(-1);
-			return "Error IOException";
 		}
 		return "Error don't have the right to read the file";
 	}
@@ -187,7 +187,7 @@ public class FichierR
 			is = new BufferedInputStream(new FileInputStream(filename));
 			byte[] c = new byte[1024];
 			long count = 0;
-			int readChars = 0;
+			int readChars;
 			boolean endsWithoutNewLine = false;
 			while ((readChars = is.read(c)) != -1) {
 				for (int i = 0; i < readChars; ++i) {
@@ -209,7 +209,10 @@ public class FichierR
             }catch(IOException e2){
                 e2.printStackTrace();
                 System.exit(-1);
-            }
+            }catch(NullPointerException e3){
+                e3.printStackTrace();
+                System.exit(-1);
+			}
 		}
 		return 0;
 	}

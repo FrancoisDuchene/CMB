@@ -9,9 +9,11 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import java.io.File;
+import java.util.*;
 
 /*
  This program is an database manager. This source file is the GUI part of it
+ Central Movie Base, CMB for short, version is currently : 0.1
  Copyright (C) 2017  Vinsifroid ~ François Duchêne
 
  This program is free software: you can redistribute it and/or modify
@@ -33,7 +35,7 @@ import java.io.File;
  * @author vinsifroid
  * @since v0.1
  */
-public class CMB_gui extends JFrame{
+class CMB_gui extends JFrame{
     // Barre de menu
     private JMenuBar menuBar;
     private JMenu Fichier;
@@ -41,10 +43,11 @@ public class CMB_gui extends JFrame{
 
     private JMenuItem majBD;
     private JMenuItem rechMot;
+    private JMenuItem rechPrec;
     private JMenuItem quit;
     private JMenuItem APropo;
 
-    public CMB_gui()
+    CMB_gui()
     {
         // Caractéristiques de base
         super();
@@ -101,6 +104,21 @@ public class CMB_gui extends JFrame{
                 area.setCaretPosition(area.getDocument().getLength());
             }
         });
+        rechPrec = new JMenuItem("Recherche precise");
+        rechPrec.addActionListener(actionEvent -> {
+            String rep = JOptionPane.showInputDialog(null, "Introduisez un mot précis à chercher", "Requête",
+                    JOptionPane.QUESTION_MESSAGE);
+            if(rep != null) {
+                String[] listFichiers = CMB.donnerListeNomsF();
+                final int indice = CMB.BinarySearch(listFichiers,rep,0,listFichiers.length-1);
+
+                if(indice > 0) {
+                    area.setText("");
+                    area.append(indice + "\n");
+                    area.setCaretPosition(area.getDocument().getLength());
+                }
+            }
+        });
         APropo = new JMenuItem("A propos");
         APropo.addActionListener(event -> JOptionPane.showMessageDialog(null, "Version 0.1 : Build du " + CMB.dateActuelle() + "\nDéveloppeur : vinsifroid",
                 "A propos", JOptionPane.INFORMATION_MESSAGE));
@@ -108,6 +126,7 @@ public class CMB_gui extends JFrame{
         // On ajoute les coomposants
         Fichier.add(majBD);
         Fichier.add(rechMot);
+        Fichier.add(rechPrec);
         Fichier.add(quit);
         aPropos.add(APropo);
         menuBar.add(Fichier);

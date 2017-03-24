@@ -10,6 +10,7 @@ import java.util.List;
 
 /*
  This program is an database manager. This source file is main part of it
+ Central Movie Base, CMB for short, version is currently : 0.1
  Copyright (C) 2017  Vinsifroid ~ François Duchêne
 
  This program is free software: you can redistribute it and/or modify
@@ -44,15 +45,18 @@ public class CMB {
     {
         OS = getOsName();
         System.out.println("Central Movie Database - " + dateActuelle());
-        createFichier();
-        SwingUtilities.invokeLater(() -> new CMB_gui());
+        if(!createFichier()){
+            System.err.println("Error when creating the file");
+            System.exit(1);
+        }
+        SwingUtilities.invokeLater(CMB_gui::new);
     }
 
     /**
      * Cette fonction cree le fichier "Films.bd"
      * @return true si le fichier est bien cree, false si le dossier n'existait pas, si il y a eu un problème ou si le fichier existait déjà
      */
-    private static void createFichier()
+    private static boolean createFichier()
     {
         // On regarde si le fichier existe
 
@@ -60,7 +64,8 @@ public class CMB {
         // On verifie que le dossier BaseDonnee existe
         if(!folder.exists() && !folder.isDirectory())
         {
-            folder.mkdirs();
+            if(!folder.mkdirs())
+                return false;
         }
         // On verifie que le fichier existe
         if (!fichierExiste(cheminBD(), "Films.bd")) {
@@ -72,20 +77,22 @@ public class CMB {
                 System.out.println("Fichier cree");
                 setfR(new FichierR(cheminBD()+inter()+"Films.bd"));
                 getfR().ouvrirFluxReader();
+                return true;
             }else{
-                System.exit(-1);
+                return false;
             }
         } else {
             setfW(new FichierW(cheminBD()+inter()+"Films.bd"));
             getfW().ouvrirFuxWriter(true);
             setfR(new FichierR(cheminBD()+inter()+"Films.bd"));
             getfR().ouvrirFluxReader();
+            return true;
         }
     }
     /*
         Fonctions pour réaliser la liste de films
      */
-    public static void findFiles(File file1)
+    static void findFiles(File file1)
     {
         //TODO lister les fichiers dans l'ordre alphabétique pour pouvoir faire une recherche dichotomique par la suite
         //TODO ne pas réécrire les mêmes fichiers 2 fois
@@ -125,8 +132,8 @@ public class CMB {
             //TODO trouver un autre moyen que d'ouvrir un nouveau flux
             FichierW editeurTmp = new FichierW(cheminBD()+inter()+"Films.bd");
             editeurTmp.ouvrirFuxWriter(false);
-            for (int i=0;i<listeFichiers.length;i++) {
-                editeurTmp.ecrireString(listeFichiers[i]);
+            for (String listeFichier : listeFichiers) {
+                editeurTmp.ecrireString(listeFichier);
             }
             editeurTmp.fermerFluxWriter();
         }
@@ -186,10 +193,7 @@ public class CMB {
     private static void merge(String[] A, int min, int mid, int max)
     {
         String[] Aux = new String[A.length];
-        for(int k=min;k<=max;k++)
-        {
-            Aux[k] = A[k];  // Copie dans un tableau auxiliaire
-        }
+        System.arraycopy(A, min, Aux, min, max + 1 - min);
         final int i=min;    // Debut de la première partie
         final int j=mid+1;  // Debut de la seconde partie
         for(int k=min;k<=max;k++)
@@ -216,10 +220,10 @@ public class CMB {
      * @param motAChercher le mot à chercher
      * @return un liste chainée des occurences
      */
-    public static List<String> searchWord(String motAChercher)
+    static List<String> searchWord(String motAChercher)
     {
         List<String> liste = new ArrayList<>();
-        String tmp = null;
+        String tmp;
         final long taille = getfR().longueurFichier();
         // Ne surtout pas oublier d'en mettre un nouveau sinon
         // il pourrait commencer à lire à la fin du flux
@@ -242,7 +246,7 @@ public class CMB {
      * @param max l'indice maximal. Initialement n-1
      * @return l'indice de la clé dans le tableau, -1 si absente
      */
-    public static int BinarySearch(String[] listFiles,String filename,int min, int max)
+    static int BinarySearch(String[] listFiles, String filename, int min, int max)
     {
         if (min > max)
             return -1;
@@ -260,7 +264,12 @@ public class CMB {
     /*
         Fonctions Usuelles
      */
-    public static String[] donnerListeFichiers()
+
+    /**
+     *
+     * @return une liste des noms de fichiers avec chemin complet
+     */
+    private static String[] donnerListeFichiers()
     {
         List<String> liste = new ArrayList<>();
         final long taille = getfR().longueurFichier();
@@ -272,14 +281,19 @@ public class CMB {
         }
         return liste.toArray(new String[liste.size()]);
     }
-    public static String[] donnerListeNomsF()
+
+    /**
+     *
+     * @return une liste des noms de fichiers sans chemin
+     */
+    static String[] donnerListeNomsF()
     {
         String []liste = donnerListeFichiers();
         for (int i=0;i<liste.length;i++) {
             final String mot = liste[i];
             //On regarde la dernière occurence de / pour ne prendre que le nom du film sans le chemin
             final int indice = mot.lastIndexOf(inter());
-            liste[i] = mot.substring(indice);
+            liste[i] = mot.substring(indice+1);
         }
         return liste;
     }
@@ -302,13 +316,13 @@ public class CMB {
         }
         return false;
     }
-    public static String dateActuelle()
+    static String dateActuelle()
     {
         DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         LocalDate localDate = LocalDate.now();
         return dateFormat.format(localDate);
     }
-    public static String cheminBD()
+    private static String cheminBD()
     {
         String path = null;
         final String homePath = System.getProperty("user.home");
@@ -322,7 +336,7 @@ public class CMB {
         }
         return path;
     }
-    public static String inter()
+    private static String inter()
     {
         return File.separator;
     }
@@ -332,19 +346,19 @@ public class CMB {
         return OS;
     }
 
-    public static FichierW getfW() {
+    static FichierW getfW() {
         return fW;
     }
 
-    public static void setfW(FichierW fW) {
+    private static void setfW(FichierW fW) {
         CMB.fW = fW;
     }
 
-    public static FichierR getfR() {
+    static FichierR getfR() {
         return fR;
     }
 
-    public static void setfR(FichierR fR) {
+    private static void setfR(FichierR fR) {
         CMB.fR = fR;
     }
 }

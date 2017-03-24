@@ -8,6 +8,7 @@ import java.io.PrintWriter;
 
 /*
  This program is an database manager. This source file is the file writing part
+ Central Movie Base, CMB for short, version is currently : 0.1
  Copyright (C) 2017  Vinsifroid ~ François Duchêne
 
  This program is free software: you can redistribute it and/or modify
