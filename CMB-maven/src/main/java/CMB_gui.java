@@ -8,8 +8,9 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.io.File;
-import java.util.*;
 
 /*
  This program is an database manager. This source file is the GUI part of it
@@ -35,7 +36,7 @@ import java.util.*;
  * @author vinsifroid
  * @since v0.1
  */
-class CMB_gui extends JFrame{
+final class CMB_gui extends JFrame{
     // Barre de menu
     private JMenuBar menuBar;
     private JMenu Fichier;
@@ -52,7 +53,7 @@ class CMB_gui extends JFrame{
         // Caractéristiques de base
         super();
         this.setTitle("CMB");
-        this.setSize(1200,750);
+        this.setSize(screenSizeDimension());
         this.setLocationRelativeTo(null);
         this.setResizable(true);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -110,12 +111,15 @@ class CMB_gui extends JFrame{
                     JOptionPane.QUESTION_MESSAGE);
             if(rep != null) {
                 String[] listFichiers = CMB.donnerListeNomsF();
+                //TODO probleme lorsque espace a la fin fichier, il faudrait le supprimer pour éviter des chaines vides
                 final int indice = CMB.BinarySearch(listFichiers,rep,0,listFichiers.length-1);
 
-                if(indice > 0) {
+                if(indice > -1) {
                     area.setText("");
-                    area.append(indice + "\n");
+                    area.append(listFichiers[indice] + "\n");
                     area.setCaretPosition(area.getDocument().getLength());
+                }else{
+                    JOptionPane.showMessageDialog(null,"Aucun résultat trouvé","Résultat de la Recherche",JOptionPane.INFORMATION_MESSAGE);
                 }
             }
         });
@@ -133,7 +137,6 @@ class CMB_gui extends JFrame{
         menuBar.add(aPropos);
         this.setJMenuBar(menuBar);
         this.getContentPane().add(princ);
-        pack();
         this.setVisible(true);
     }
 
@@ -144,9 +147,20 @@ class CMB_gui extends JFrame{
 
         fc.showOpenDialog(this.getComponent(0));
         final  File selFile = fc.getSelectedFile();
+        final long startTime = System.currentTimeMillis();
+        System.out.println("Mise à jour Base de donnee - Initialisation...");
         if(selFile != null) {
             CMB.findFiles(selFile);
             CMB.getfW().forcerEcriture();
         }
+        System.out.println("Mise a jour Base de donnee - " + CMB.dateActuelle());
+        final long endTime = System.currentTimeMillis();
+        System.out.println("Fait en " + (endTime - startTime) + " ms");
+    }
+
+    // Permet d'avoir les dimensions de l'écran (largeur + hauteur)
+    private Dimension screenSizeDimension()
+    {
+        return Toolkit.getDefaultToolkit().getScreenSize();
     }
 }

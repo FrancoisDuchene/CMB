@@ -32,7 +32,6 @@ import java.util.List;
  * @since v0.1
  */
 public class CMB {
-    private static String OS = null;
     private static FichierW fW = null;
     private static FichierR fR = null;
     private CMB(){}
@@ -43,7 +42,6 @@ public class CMB {
      */
     public static void main(String [] args)
     {
-        OS = getOsName();
         System.out.println("Central Movie Database - " + dateActuelle());
         if(!createFichier()){
             System.err.println("Error when creating the file");
@@ -74,7 +72,7 @@ public class CMB {
                 // On doit s'arranger pour que dans tous les cas, on ouvre le flux
                 setfW(new FichierW(cheminBD()+inter()+"Films.bd"));
                 getfW().ouvrirFuxWriter(true);
-                System.out.println("Fichier cree");
+                System.out.println("Fichier crée");
                 setfR(new FichierR(cheminBD()+inter()+"Films.bd"));
                 getfR().ouvrirFluxReader();
                 return true;
@@ -260,6 +258,7 @@ public class CMB {
             // On cherche dans la seconde moitiée
             return BinarySearch(listFiles, filename, middle+1, max);
         }
+        //TODO moyen ameliorer performance en ne renvoyant pas l'entiereté de la liste de fichiers
     }
     /*
         Fonctions Usuelles
@@ -273,11 +272,15 @@ public class CMB {
     {
         List<String> liste = new ArrayList<>();
         final long taille = getfR().longueurFichier();
+        final String sep = System.getProperty("line.separator"); //Pour détecter la fin du fichier
         // Ne surtout pas oublier d'en mettre un nouveau sinon
         // il pourrait commencer à lire à la fin du flux
         getfR().setNewBufferedReader();
         for(int i = 0; i < taille; i++) {
-            liste.add(getfR().lire());
+            final String str = getfR().lire();
+            if(!str.equals(sep) && !str.equals("")) {
+                liste.add(str);
+            }
         }
         return liste.toArray(new String[liste.size()]);
     }
@@ -326,6 +329,7 @@ public class CMB {
     {
         String path = null;
         final String homePath = System.getProperty("user.home");
+        String OS = getOsName();
         if(OS.contains("Windows")){
             path = homePath + "\\BaseDonnee";
         }else if (OS.contains("Linux")){
@@ -340,10 +344,9 @@ public class CMB {
     {
         return File.separator;
     }
-    private static String getOsName()
-    {
-        if(OS == null) { OS = System.getProperty("os.name"); }
-        return OS;
+
+    private static String getOsName() {
+        return System.getProperty("os.name");
     }
 
     static FichierW getfW() {
