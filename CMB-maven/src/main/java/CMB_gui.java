@@ -111,7 +111,10 @@ final class CMB_gui extends JFrame{
                     JOptionPane.QUESTION_MESSAGE);
             if(rep != null) {
                 String[] listFichiers = CMB.donnerListeNomsF();
-                //TODO probleme lorsque espace a la fin fichier, il faudrait le supprimer pour éviter des chaines vides
+                //TODO Laisser le choix à l'utilisateur de quels extensions sont filtrées (une, plusieurs, aucune)
+                //TODO Laisser à l'utilisateur de compter les espaces dans le mot ou pas
+                //TODO Laisser à l'utilisateur le choix de tenir compte de la casse ou non
+                CMB.filtrerExtensions(listFichiers);
                 final int indice = CMB.BinarySearch(listFichiers,rep,0,listFichiers.length-1);
 
                 if(indice > -1) {
@@ -124,7 +127,7 @@ final class CMB_gui extends JFrame{
             }
         });
         APropo = new JMenuItem("A propos");
-        APropo.addActionListener(event -> JOptionPane.showMessageDialog(null, "Version 0.1 : Build du " + CMB.dateActuelle() + "\nDéveloppeur : vinsifroid",
+        APropo.addActionListener(event -> JOptionPane.showMessageDialog(null, "Version 0.2 : Build du " + CMB.dateActuelle() + "\nDéveloppeur : vinsifroid",
                 "A propos", JOptionPane.INFORMATION_MESSAGE));
 
         // On ajoute les coomposants

@@ -10,7 +10,7 @@ import java.util.List;
 
 /*
  This program is an database manager. This source file is main part of it
- Central Movie Base, CMB for short, version is currently : 0.1
+ Central Movie Base, CMB for short, version is currently : 0.2
  Copyright (C) 2017  Vinsifroid ~ François Duchêne
 
  This program is free software: you can redistribute it and/or modify
@@ -296,9 +296,27 @@ public class CMB {
             final String mot = liste[i];
             //On regarde la dernière occurence de / pour ne prendre que le nom du film sans le chemin
             final int indice = mot.lastIndexOf(inter());
-            liste[i] = mot.substring(indice+1);
+            if(indice != -1) {
+                liste[i] = mot.substring(indice+1);
+            }
         }
         return liste;
+    }
+
+    /**
+     * On modifie la liste passée en paramètre en retirant toute extension
+     * @param liste la liste de noms dont on veut filtrer l'extensions
+     */
+    static void filtrerExtensions(String[] liste) {
+        for(int i=0;i<liste.length;i++) {
+            final String mot = liste[i];
+            //On pourrait utiliser String.endswith pour voir avec quel extension on termine
+            //On filtre les extensions
+            final int indice = mot.lastIndexOf("."); //On suppose que tous les films ont une extension
+            if(indice != -1) {
+                liste[i] = mot.substring(0,indice);
+            }
+        }
     }
     /**
      *
