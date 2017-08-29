@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.sql.*;
 
 /*
  This program is an database manager. This source file is main part of it
@@ -32,22 +33,44 @@ import java.util.List;
  * @since v0.1
  */
 public class CMB {
+    private final static String filename = "Films.db";
     private static FichierW fW = null;
     private static FichierR fR = null;
+    private static Connection conn = null;
     private CMB(){}
 
     /*On n'essaie pas encore de faire une base donnée parfaite, on veut pour l'instant
     seulement pouvoir y accéder via ce programme.
     Pour ce qui est de la structure de la BD, on va utiliser un simple fichier texte.
+    EDIT : en train de migrer vers SQLite
      */
     public static void main(String [] args)
     {
         System.out.println("Central Movie Database - " + dateActuelle());
+        /*
         if(!createFichier()){
             System.err.println("Error when creating the file");
             System.exit(1);
         }
         SwingUtilities.invokeLater(CMB_gui::new);
+        */
+        connect();
+        createNewTable();
+        insert("Raw Materials", 3000);
+        insert("Semifinished Goods", 4000);
+        insert("Finished Goods", 5000);
+        selectAll(); //
+        System.out.println();
+        getCapacityGreaterThan(3500); //
+        System.out.println();
+        update(3, "Finished Products", 5500);
+        System.out.println();
+        getCapacityGreaterThan(3500); //
+        System.out.println();
+        delete(3);
+        System.out.println();
+        getCapacityGreaterThan(3500); //
+        closeDB();
     }
 
     /**
@@ -90,7 +113,7 @@ public class CMB {
     /*
         Fonctions pour réaliser la liste de films
      */
-    static void findFiles(File file1)
+    public static void findFiles(File file1)
     {
         //TODO lister les fichiers dans l'ordre alphabétique pour pouvoir faire une recherche dichotomique par la suite
         //TODO ne pas réécrire les mêmes fichiers 2 fois
@@ -218,7 +241,7 @@ public class CMB {
      * @param motAChercher le mot à chercher
      * @return un liste chainée des occurences
      */
-    static List<String> searchWord(String motAChercher)
+    public static List<String> searchWord(String motAChercher)
     {
         List<String> liste = new ArrayList<>();
         String tmp;
@@ -244,7 +267,7 @@ public class CMB {
      * @param max l'indice maximal. Initialement n-1
      * @return l'indice de la clé dans le tableau, -1 si absente
      */
-    static int BinarySearch(String[] listFiles, String filename, int min, int max)
+    public static int BinarySearch(String[] listFiles, String filename, int min, int max)
     {
         if (min > max)
             return -1;
@@ -289,7 +312,7 @@ public class CMB {
      *
      * @return une liste des noms de fichiers sans chemin
      */
-    static String[] donnerListeNomsF()
+    public static String[] donnerListeNomsF()
     {
         String []liste = donnerListeFichiers();
         for (int i=0;i<liste.length;i++) {
@@ -307,7 +330,7 @@ public class CMB {
      * On modifie la liste passée en paramètre en retirant toute extension
      * @param liste la liste de noms dont on veut filtrer l'extensions
      */
-    static void filtrerExtensions(String[] liste) {
+    public static void filtrerExtensions(String[] liste) {
         for(int i=0;i<liste.length;i++) {
             final String mot = liste[i];
             //On pourrait utiliser String.endswith pour voir avec quel extension on termine
@@ -337,7 +360,7 @@ public class CMB {
         }
         return false;
     }
-    static String dateActuelle()
+    public static String dateActuelle()
     {
         DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         LocalDate localDate = LocalDate.now();
@@ -347,7 +370,7 @@ public class CMB {
     {
         String path = null;
         final String homePath = System.getProperty("user.home");
-        String OS = getOsName();
+        final String OS = getOsName();
         if(OS.contains("Windows")){
             path = homePath + "\\BaseDonnee";
         }else if (OS.contains("Linux")){
@@ -358,6 +381,132 @@ public class CMB {
         }
         return path;
     }
+    //Méthodes en rapport avec SQLite
+
+    /**
+     * Méthode pour établir la connection à la bdd
+     */
+    private static void connect() {
+        try {
+            // Paramètres de la bdd
+            //TODO rendre cette url générique
+            final String url = "jdbc:sqlite:/home/vinsifroid/BaseDonnee/" + filename;
+            //On crée la connection à la bdd. Si elle n'existe pas elle est automatiquement crée
+            conn = DriverManager.getConnection(url);
+            DatabaseMetaData meta = conn.getMetaData();
+            System.out.println("Le nom du driver est " + meta.getDriverName());
+            System.out.println("La connection s'est effectuée correctement");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            closeDB();
+        }
+    }
+    private static void closeDB() {
+        try {
+            if (conn != null) {
+                conn.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.exit(-1);
+        }
+    }
+    private static void createNewTable() {
+
+        final String sql = "CREATE TABLE IF NOT EXISTS warehouses (\n"
+                + " id integer NOT NULL PRIMARY KEY AUTOINCREMENT,\n"
+                + " name text NOT NULL,\n"
+                + " capacity real\n"
+                + ");";
+        final String sql1 = "CREATE TABLE IF NOT EXISTS materials (\n"
+                + " id integer PRIMARY KEY,\n"
+                + " description text NOT NULL\n"
+                + ");";
+        final String sql2 = "CREATE TABLE IF NOT EXISTS inventory (\n"
+                + " warehouse_id integer,\n"
+                + " material_id integer,\n"
+                + " qty real,\n"
+                + " PRIMARY KEY (warehouse_id, material_id),\n"
+                + " FOREIGN KEY (warehouse_id) REFERENCES warehouses (id),\n"
+                + " FOREIGN KEY (material_id) REFERENCES materials (id)\n"
+                + ");";
+        try(Statement stmt = conn.createStatement()) {
+            // create a new table
+            stmt.execute(sql);
+            stmt.execute(sql1);
+            stmt.execute(sql2);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    private static void selectAll() {
+        final String sql = "SELECT id, name, capacity FROM warehouses";
+
+        try(Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql)) {
+            // on parcours l'ensemble des résultats
+            sqliteManager.printRes_Debug(rs, new String[]{"id","name","capacity"}, new byte[]{1,2,3});
+        } catch(SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void getCapacityGreaterThan(double capacity) {
+        final String sql = "SELECT id, name, capacity "
+                   + "FROM warehouses WHERE capacity > ?";
+        try(PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            //on met la valeur
+            pstmt.setDouble(1,capacity);
+            ResultSet rs = pstmt.executeQuery();
+
+            //On parcours l'ensemble des résultats
+            sqliteManager.printRes_Debug(rs, new String[]{"id","name","capacity"}, new byte[]{1,2,3});
+        } catch(SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    private static void insert(String name, double capacity) {
+        final String sql = "INSERT INTO warehouses(name,capacity) VALUES(?,?)";
+
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, name);
+            pstmt.setDouble(2, capacity);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+    private static void update(int id, String name, double capacity) {
+        final String sql = "UPDATE warehouses SET name = ? , "
+                + "capacity = ? "
+                + "WHERE id = ?";
+
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            // set the corresponding param
+            pstmt.setString(1, name);
+            pstmt.setDouble(2, capacity);
+            pstmt.setInt(3, id);
+            // update
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+    private static void delete(int id) {
+        final String sql = "DELETE FROM warehouses WHERE id = ?";
+
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            // set the corresponding param
+            pstmt.setInt(1, id);
+            // execute the delete statement
+            pstmt.executeUpdate();
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
     private static String inter()
     {
         return File.separator;
@@ -367,7 +516,7 @@ public class CMB {
         return System.getProperty("os.name");
     }
 
-    static FichierW getfW() {
+    public static FichierW getfW() {
         return fW;
     }
 
@@ -375,7 +524,7 @@ public class CMB {
         CMB.fW = fW;
     }
 
-    static FichierR getfR() {
+    public static FichierR getfR() {
         return fR;
     }
 
