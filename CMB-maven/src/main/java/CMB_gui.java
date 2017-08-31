@@ -14,7 +14,7 @@ import java.io.File;
 
 /*
  This program is an database manager. This source file is the GUI part of it
- Central Movie Base, CMB for short, version is currently : 0.1
+ Central Movie Base, CMB for short, version is currently : 0.3
  Copyright (C) 2017  Vinsifroid ~ François Duchêne
 
  This program is free software: you can redistribute it and/or modify
@@ -127,7 +127,7 @@ final class CMB_gui extends JFrame{
             }
         });
         APropo = new JMenuItem("A propos");
-        APropo.addActionListener(event -> JOptionPane.showMessageDialog(null, "Version 0.2 : Build du " + CMB.dateActuelle() + "\nDéveloppeur : vinsifroid",
+        APropo.addActionListener(event -> JOptionPane.showMessageDialog(null, "Version 0.3 : Build du " + CMB.dateActuelle() + "\nDéveloppeur : vinsifroid",
                 "A propos", JOptionPane.INFORMATION_MESSAGE));
 
         // On ajoute les coomposants

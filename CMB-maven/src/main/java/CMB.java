@@ -11,7 +11,7 @@ import java.sql.*;
 
 /*
  This program is an database manager. This source file is main part of it
- Central Movie Base, CMB for short, version is currently : 0.2
+ Central Movie Base, CMB for short, version is currently : 0.3
  Copyright (C) 2017  Vinsifroid ~ François Duchêne
 
  This program is free software: you can redistribute it and/or modify
@@ -33,10 +33,10 @@ import java.sql.*;
  * @since v0.1
  */
 public class CMB {
-    private final static String filename = "Films.db";
     private static FichierW fW = null;
     private static FichierR fR = null;
     private static Connection conn = null;
+    private static final boolean debug = true;
     private CMB(){}
 
     /*On n'essaie pas encore de faire une base donnée parfaite, on veut pour l'instant
@@ -47,40 +47,18 @@ public class CMB {
     public static void main(String [] args)
     {
         System.out.println("Central Movie Database - " + dateActuelle());
-        /*
-        if(!createFichier()){
+        if(!createFolder()){
             System.err.println("Error when creating the file");
             System.exit(1);
         }
+        final String filename = cheminBD() + inter() + "Films.db";
+        SqliteManager app = new SqliteManager(filename);
+        app.closeDB();
+        /*
         SwingUtilities.invokeLater(CMB_gui::new);
         */
-        connect();
-        createNewTable();
-        insert("Raw Materials", 3000);
-        insert("Semifinished Goods", 4000);
-        insert("Finished Goods", 5000);
-        selectAll(); //
-        System.out.println();
-        getCapacityGreaterThan(3500); //
-        System.out.println();
-        update(3, "Finished Products", 5500);
-        System.out.println();
-        getCapacityGreaterThan(3500); //
-        System.out.println();
-        delete(3);
-        System.out.println();
-        getCapacityGreaterThan(3500); //
-        closeDB();
     }
-
-    /**
-     * Cette fonction cree le fichier "Films.bd"
-     * @return true si le fichier est bien cree, false si le dossier n'existait pas, si il y a eu un problème ou si le fichier existait déjà
-     */
-    private static boolean createFichier()
-    {
-        // On regarde si le fichier existe
-
+    private static boolean createFolder() {
         File folder = new File(cheminBD());
         // On verifie que le dossier BaseDonnee existe
         if(!folder.exists() && !folder.isDirectory())
@@ -88,27 +66,7 @@ public class CMB {
             if(!folder.mkdirs())
                 return false;
         }
-        // On verifie que le fichier existe
-        if (!fichierExiste(cheminBD(), "Films.bd")) {
-            // Sinon on le crée
-            if(FichierW.creerNouveauFichier(cheminBD()+inter()+"Films.bd")) {
-                // On doit s'arranger pour que dans tous les cas, on ouvre le flux
-                setfW(new FichierW(cheminBD()+inter()+"Films.bd"));
-                getfW().ouvrirFuxWriter(true);
-                System.out.println("Fichier crée");
-                setfR(new FichierR(cheminBD()+inter()+"Films.bd"));
-                getfR().ouvrirFluxReader();
-                return true;
-            }else{
-                return false;
-            }
-        } else {
-            setfW(new FichierW(cheminBD()+inter()+"Films.bd"));
-            getfW().ouvrirFuxWriter(true);
-            setfR(new FichierR(cheminBD()+inter()+"Films.bd"));
-            getfR().ouvrirFluxReader();
-            return true;
-        }
+        return true;
     }
     /*
         Fonctions pour réaliser la liste de films
@@ -158,16 +116,6 @@ public class CMB {
             }
             editeurTmp.fermerFluxWriter();
         }
-    }
-    /*
-        Une bonne méthode de tri serait de trier dès qu'on ajoute un nouvel élément ;
-        On pré-suppose que la liste est déjà trié dans l'ordre alphabétique (seuls les noms de fichiers sont triés
-        et non pas le chemin complet + nom. On pourrait aller commencer par cibler l'endroit précis où on doit insérer
-        le nom comme pour la recherche dichotomique.
-     */
-    private static void insertName(String nom)
-    {
-
     }
     private static void bubbleSort(String[] listeFi)
     {
@@ -381,132 +329,7 @@ public class CMB {
         }
         return path;
     }
-    //Méthodes en rapport avec SQLite
 
-    /**
-     * Méthode pour établir la connection à la bdd
-     */
-    private static void connect() {
-        try {
-            // Paramètres de la bdd
-            //TODO rendre cette url générique
-            final String url = "jdbc:sqlite:/home/vinsifroid/BaseDonnee/" + filename;
-            //On crée la connection à la bdd. Si elle n'existe pas elle est automatiquement crée
-            conn = DriverManager.getConnection(url);
-            DatabaseMetaData meta = conn.getMetaData();
-            System.out.println("Le nom du driver est " + meta.getDriverName());
-            System.out.println("La connection s'est effectuée correctement");
-        } catch (SQLException e) {
-            e.printStackTrace();
-            closeDB();
-        }
-    }
-    private static void closeDB() {
-        try {
-            if (conn != null) {
-                conn.close();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.exit(-1);
-        }
-    }
-    private static void createNewTable() {
-
-        final String sql = "CREATE TABLE IF NOT EXISTS warehouses (\n"
-                + " id integer NOT NULL PRIMARY KEY AUTOINCREMENT,\n"
-                + " name text NOT NULL,\n"
-                + " capacity real\n"
-                + ");";
-        final String sql1 = "CREATE TABLE IF NOT EXISTS materials (\n"
-                + " id integer PRIMARY KEY,\n"
-                + " description text NOT NULL\n"
-                + ");";
-        final String sql2 = "CREATE TABLE IF NOT EXISTS inventory (\n"
-                + " warehouse_id integer,\n"
-                + " material_id integer,\n"
-                + " qty real,\n"
-                + " PRIMARY KEY (warehouse_id, material_id),\n"
-                + " FOREIGN KEY (warehouse_id) REFERENCES warehouses (id),\n"
-                + " FOREIGN KEY (material_id) REFERENCES materials (id)\n"
-                + ");";
-        try(Statement stmt = conn.createStatement()) {
-            // create a new table
-            stmt.execute(sql);
-            stmt.execute(sql1);
-            stmt.execute(sql2);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-    private static void selectAll() {
-        final String sql = "SELECT id, name, capacity FROM warehouses";
-
-        try(Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery(sql)) {
-            // on parcours l'ensemble des résultats
-            sqliteManager.printRes_Debug(rs, new String[]{"id","name","capacity"}, new byte[]{1,2,3});
-        } catch(SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private static void getCapacityGreaterThan(double capacity) {
-        final String sql = "SELECT id, name, capacity "
-                   + "FROM warehouses WHERE capacity > ?";
-        try(PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            //on met la valeur
-            pstmt.setDouble(1,capacity);
-            ResultSet rs = pstmt.executeQuery();
-
-            //On parcours l'ensemble des résultats
-            sqliteManager.printRes_Debug(rs, new String[]{"id","name","capacity"}, new byte[]{1,2,3});
-        } catch(SQLException e) {
-            e.printStackTrace();
-        }
-    }
-    private static void insert(String name, double capacity) {
-        final String sql = "INSERT INTO warehouses(name,capacity) VALUES(?,?)";
-
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, name);
-            pstmt.setDouble(2, capacity);
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-        }
-    }
-    private static void update(int id, String name, double capacity) {
-        final String sql = "UPDATE warehouses SET name = ? , "
-                + "capacity = ? "
-                + "WHERE id = ?";
-
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-            // set the corresponding param
-            pstmt.setString(1, name);
-            pstmt.setDouble(2, capacity);
-            pstmt.setInt(3, id);
-            // update
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-        }
-    }
-    private static void delete(int id) {
-        final String sql = "DELETE FROM warehouses WHERE id = ?";
-
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-            // set the corresponding param
-            pstmt.setInt(1, id);
-            // execute the delete statement
-            pstmt.executeUpdate();
-
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-        }
-    }
     private static String inter()
     {
         return File.separator;
@@ -530,5 +353,9 @@ public class CMB {
 
     private static void setfR(FichierR fR) {
         CMB.fR = fR;
+    }
+
+    public static boolean isDebug() {
+        return debug;
     }
 }
