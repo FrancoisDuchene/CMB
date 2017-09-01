@@ -140,6 +140,20 @@ public class SqliteManager {
         }
     }
 
+    public void searchMovie(String nom) {
+        final String sql = "SELECT film.name, film.path, film.year, harddisk.hd_nom FROM film WHERE film.name = ? " +
+                "INNER JOIN harddisk ON film.harddisk_id = harddisk.harddisk_id";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1,nom);
+            ResultSet rs = pstmt.executeQuery();
+            if(CMB.isDebug()) {
+                printRes_Debug(rs,new String[]{"name","path","year","hd_nom"},new byte[]{2,2,1,2});
+            }
+        } catch(SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     //INSERT - UPDATE
 
     /**
