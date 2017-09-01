@@ -6,6 +6,7 @@ import java.io.File;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.sql.*;
 
@@ -36,7 +37,7 @@ public class CMB {
     private static FichierW fW = null;
     private static FichierR fR = null;
     private static Connection conn = null;
-    private static final boolean debug = true;
+    private static final boolean debug = false;
     private CMB(){}
 
     /*On n'essaie pas encore de faire une base donnée parfaite, on veut pour l'instant
@@ -53,6 +54,7 @@ public class CMB {
         }
         final String filename = cheminBD() + inter() + "Films.db";
         SqliteManager app = new SqliteManager(filename);
+        //test_init(app);
         app.closeDB();
         /*
         SwingUtilities.invokeLater(CMB_gui::new);
@@ -328,6 +330,31 @@ public class CMB {
             System.exit(-1);
         }
         return path;
+    }
+
+    //Tests
+
+    private static void test_init(SqliteManager app) {
+
+        app.insertUpdateFilm(true,0,"Star wars","action/",1977,new int[]{1,3},1);
+        app.insertUpdateFilm(true,0,"Star trek","sciencefiction/",1977,new int[]{1},1);
+        app.insertUpdateFilm(true,0,"La soupe aux choux","/francais",0,new int[]{2},1);
+        app.insertUpdateHarddisk(true,0,"Emtec");
+        app.insertUpdateGenre(true,0,"Science-fiction");
+        app.insertUpdateGenre(true,0,"Comédie");
+        app.insertUpdateGenre(true,0,"Fantastique");
+        test_select(app);
+        app.searchMovie("Star wars");
+    }
+
+    private static void test_select(SqliteManager app) {
+        System.out.println();
+        app.selectAllMovies();
+        System.out.println();
+        app.selectAllGenres();
+        System.out.println();
+        app.selectAllHarddives();
+        System.out.println();
     }
 
     private static String inter()
