@@ -8,8 +8,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import java.awt.Dimension;
-import java.awt.Toolkit;
+import java.awt.*;
 import java.io.File;
 
 /*
@@ -44,7 +43,6 @@ final class CMB_gui extends JFrame{
 
     private JMenuItem majBD;
     private JMenuItem rechMot;
-    private JMenuItem rechPrec;
     private JMenuItem quit;
     private JMenuItem APropo;
 
@@ -83,8 +81,7 @@ final class CMB_gui extends JFrame{
 
         quit = new JMenuItem("Quitter");
         quit.addActionListener(event -> {
-            CMB.getfW().fermerFluxWriter();
-            CMB.getfR().fermerFluxReader();
+            CMB.getApp().closeDB();
             System.exit(0);
         });
         majBD = new JMenuItem("Mise à jour");
@@ -94,46 +91,24 @@ final class CMB_gui extends JFrame{
             String rep = JOptionPane.showInputDialog(null, "Introduisez un mot à chercher", "Requête",
                     JOptionPane.QUESTION_MESSAGE);
             if(rep != null) {
-                java.util.List<String> listMots = CMB.searchWord(rep);
-                area.setText("");
-                for (String listMot : listMots) {
-                    // Quand on rencontre un mot de la liste, on l'ajoute a l'area
-                    area.append(listMot + "\n");
-                }
+                java.util.List<String[]> listRes = CMB.searchMovie(rep);
+                printToArea(area,listRes,new String[]{"nom","chemin","année","disque dur"});
                 //Make sure the new text is visible, even if there
                 //was a selection in the text area.
                 area.setCaretPosition(area.getDocument().getLength());
             }
         });
-        rechPrec = new JMenuItem("Recherche precise");
-        rechPrec.addActionListener(actionEvent -> {
-            String rep = JOptionPane.showInputDialog(null, "Introduisez un mot précis à chercher", "Requête",
-                    JOptionPane.QUESTION_MESSAGE);
-            if(rep != null) {
-                String[] listFichiers = CMB.donnerListeNomsF();
-                //TODO Laisser le choix à l'utilisateur de quels extensions sont filtrées (une, plusieurs, aucune)
-                //TODO Laisser à l'utilisateur de compter les espaces dans le mot ou pas
-                //TODO Laisser à l'utilisateur le choix de tenir compte de la casse ou non
-                CMB.filtrerExtensions(listFichiers);
-                final int indice = CMB.BinarySearch(listFichiers,rep,0,listFichiers.length-1);
-
-                if(indice > -1) {
-                    area.setText("");
-                    area.append(listFichiers[indice] + "\n");
-                    area.setCaretPosition(area.getDocument().getLength());
-                }else{
-                    JOptionPane.showMessageDialog(null,"Aucun résultat trouvé","Résultat de la Recherche",JOptionPane.INFORMATION_MESSAGE);
-                }
-            }
-        });
         APropo = new JMenuItem("A propos");
+        //TODO enregistrer certaines propriétés (version, date de build) dans un fichier texte géré par des properties
         APropo.addActionListener(event -> JOptionPane.showMessageDialog(null, "Version 0.3 : Build du " + CMB.dateActuelle() + "\nDéveloppeur : vinsifroid",
                 "A propos", JOptionPane.INFORMATION_MESSAGE));
 
+        //Quand on lance l'app, elle nous affiche directement tous les films
+        final java.util.List<String[]> films = CMB.getAllMovies();
+        printToArea(area,films,new String[]{"ID","Nom","Chemin","année","genre","Disque Dur"});
         // On ajoute les coomposants
         Fichier.add(majBD);
         Fichier.add(rechMot);
-        Fichier.add(rechPrec);
         Fichier.add(quit);
         aPropos.add(APropo);
         menuBar.add(Fichier);
@@ -149,16 +124,30 @@ final class CMB_gui extends JFrame{
         fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 
         fc.showOpenDialog(this.getComponent(0));
-        final  File selFile = fc.getSelectedFile();
+        final File selFile = fc.getSelectedFile();
         final long startTime = System.currentTimeMillis();
         System.out.println("Mise à jour Base de donnee - Initialisation...");
         if(selFile != null) {
             CMB.findFiles(selFile);
-            CMB.getfW().forcerEcriture();
         }
-        System.out.println("Mise a jour Base de donnee - " + CMB.dateActuelle());
         final long endTime = System.currentTimeMillis();
-        System.out.println("Fait en " + (endTime - startTime) + " ms");
+        System.out.println("Fait le " + CMB.dateActuelle() + " en " + (endTime - startTime) + " ms");
+    }
+
+    private void printToArea(JTextArea area, java.util.List<String[]> films, String[] nomsChamps) {
+        final String esp = "\t\t";
+        area.setText("");
+        for(String champ : nomsChamps) {
+            area.append(champ + esp);
+        }
+        area.append("\n");
+        for(String [] listeFilms : films) {
+            for (String attribut : listeFilms) {
+                // Quand on rencontre un mot de la liste, on l'ajoute a l'area
+                area.append(attribut + esp);
+            }
+            area.append("\n");
+        }
     }
 
     // Permet d'avoir les dimensions de l'écran (largeur + hauteur)

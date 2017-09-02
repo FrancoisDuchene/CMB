@@ -34,9 +34,7 @@ import java.sql.*;
  * @since v0.1
  */
 public class CMB {
-    private static FichierW fW = null;
-    private static FichierR fR = null;
-    private static Connection conn = null;
+    private static SqliteManager app;
     private static final boolean debug = false;
     private CMB(){}
 
@@ -52,21 +50,29 @@ public class CMB {
             System.err.println("Error when creating the file");
             System.exit(1);
         }
+        final boolean DBExist = isDBExist();
         final String filename = cheminBD() + inter() + "Films.db";
-        SqliteManager app = new SqliteManager(filename);
-        //test_init(app);
-        app.closeDB();
-        /*
+        app = new SqliteManager(filename);
+        //test_init();
         SwingUtilities.invokeLater(CMB_gui::new);
-        */
     }
     private static boolean createFolder() {
-        File folder = new File(cheminBD());
+        final String ch = cheminBD();
+        File folder = new File(ch);
         // On verifie que le dossier BaseDonnee existe
         if(!folder.exists() && !folder.isDirectory())
         {
             if(!folder.mkdirs())
                 return false;
+        }
+
+        return true;
+    }
+    private static boolean isDBExist() {
+        final String ch = cheminBD();
+        File bdd = new File(ch + inter() + "Films.db");
+        if(!bdd.exists()) {
+            return false;
         }
         return true;
     }
@@ -75,221 +81,59 @@ public class CMB {
      */
     public static void findFiles(File file1)
     {
-        //TODO lister les fichiers dans l'ordre alphabétique pour pouvoir faire une recherche dichotomique par la suite
-        //TODO ne pas réécrire les mêmes fichiers 2 fois
+        //TODO Ajouter de nouveaux filtres pour ajouter automatiquement les genres, années,...
+        //TODO faire un système pour retenir des films qui existent déjà dans la db et avertir l'utilisateur
         File[] list = file1.listFiles();
         if(list!=null)
         {
             for(File file2 : list)
             {
+                //TODO tester performance de stocker nomSuf au lieu de faire des appels à fonction dans chaque if
+                final String nomSuf = file2.getName();
                 if (file2.isDirectory())
                 {
                     findFiles(file2);
                 }
-                else if (file2.getName().endsWith("avi")) {
-                    final String nom = file2.getPath();
-                    getfW().ecrireString(nom);
-                }else if (file2.getName().endsWith("mp4")) {
-                    final String nom = file2.getPath();
-                    getfW().ecrireString(nom);
-                }else if (file2.getName().endsWith("mkv")) {
-                    final String nom = file2.getPath();
-                    getfW().ecrireString(nom);
-                }else if (file2.getName().endsWith("mov")) {
-                    final String nom = file2.getPath();
-                    getfW().ecrireString(nom);
-                }
-            }
-            //On force l'écriture pour être sûr que c'est écrit dans le fichier
-            getfW().forcerEcriture();
-
-            //D'abord on obtient la liste des noms contenus dans la liste
-            //TODO trouver une autre façon de procéder moins consomatrice en ressource
-            String[] listeFichiers = donnerListeFichiers();
-            //TODO corriger le tri par fusion pour gagner en temps
-            //mergeSort(listeFichiers,0,taille-1);
-            bubbleSort(listeFichiers);
-
-            //TODO trouver un autre moyen que d'ouvrir un nouveau flux
-            FichierW editeurTmp = new FichierW(cheminBD()+inter()+"Films.bd");
-            editeurTmp.ouvrirFuxWriter(false);
-            for (String listeFichier : listeFichiers) {
-                editeurTmp.ecrireString(listeFichier);
-            }
-            editeurTmp.fermerFluxWriter();
-        }
-    }
-    private static void bubbleSort(String[] listeFi)
-    {
-        final int n = listeFi.length;
-        for (int i=1;i<=n;i++)
-        {
-            for(int j=0;j<(n-i);j++)
-            {
-                if(listeFi[j].compareToIgnoreCase(listeFi[j+1]) > 0) {
-                    String tmp = listeFi[j+1];
-                    listeFi[j+1] = listeFi[j];
-                    listeFi[j] = tmp;
+                else if (nomSuf.endsWith("avi")) {
+                    final String path = file2.getAbsolutePath();
+                    final String nom = filtreExtension(nomSuf);
+                    app.insertUpdateFilm(true,0,nom,path,".mov",0,null,1);
+                }else if (nomSuf.endsWith("mp4")) {
+                    final String path = file2.getPath();
+                    final String nom = filtreExtension(nomSuf);
+                    app.insertUpdateFilm(true,0,nom,path,"mp4",0,null,1);
+                }else if (nomSuf.endsWith("mkv")) {
+                    final String path = file2.getPath();
+                    final String nom = filtreExtension(nomSuf);
+                    app.insertUpdateFilm(true,0,nom,path,"mkv",0,null,1);
+                }else if (nomSuf.endsWith("mov")) {
+                    final String path = file2.getPath();
+                    final String nom = filtreExtension(nomSuf);
+                    app.insertUpdateFilm(true,0,nom,path,"mov",0,null,1);
                 }
             }
         }
     }
-
-    /**
-     *
-     * @param listFichiers une liste de n fichiers
-     * @param min l'indice minimal. Initialement min=0
-     * @param max l'indice maximal. Initialement max = n-1
-     * @return un tableau String[] trié
-     */
-    private static String[] mergeSort(String[] listFichiers, int min, int max)
-    {
-        //Cas de base
-        if(min >= max)
-            return listFichiers;
-        final int mid = (min+max)/2;            // Indice du milieu
-        mergeSort(listFichiers, min, mid);      // Tri première moitié
-        mergeSort(listFichiers, mid+1, max);    // Tri seconde moitié
-        merge(listFichiers, min, mid, max);     // Fusion
-        return listFichiers;
-    }
-
-    /**
-     *  Cette fonction trie le tableau A
-     * @param A un tableau de la liste de fichiers avec [min...mid] et [mid+1...max]
-     * @param min l'indice minimal
-     * @param mid l'indice milieu
-     * @param max l'indice maximal
-     */
-    private static void merge(String[] A, int min, int mid, int max)
-    {
-        String[] Aux = new String[A.length];
-        System.arraycopy(A, min, Aux, min, max + 1 - min);
-        final int i=min;    // Debut de la première partie
-        final int j=mid+1;  // Debut de la seconde partie
-        for(int k=min;k<=max;k++)
-        {
-            if(i>mid){
-                A[k] = Aux[j+1];
-            }else if(j > max){
-                A[k] = Aux[i+1];
-            }else if(Aux[i].compareToIgnoreCase(Aux[j]) <= 0){ // plus petit dans la première partie
-                A[k] = Aux[i+1];
-            }else{                 // plus petit que la seconde partie
-                A[k] = Aux[j+1];
-            }
-        }
-    }
-
     /*
-        Fonctions pour rechercher dans la liste de mots
+        Fonctions interaction avec la bdd
      */
-
-    /**
-     * Fonction de recherche naive, il recherche toutes les occurences du mot dans la liste.
-     * Complexité temporelle en O(n) mais spatiale en O(n) également avec n le nombre d'entrées
-     * @param motAChercher le mot à chercher
-     * @return un liste chainée des occurences
-     */
-    public static List<String> searchWord(String motAChercher)
-    {
-        List<String> liste = new ArrayList<>();
-        String tmp;
-        final long taille = getfR().longueurFichier();
-        // Ne surtout pas oublier d'en mettre un nouveau sinon
-        // il pourrait commencer à lire à la fin du flux
-        getfR().setNewBufferedReader();
-        for(int i = 0; i < taille; i++)
-        {
-            tmp = getfR().lire();
-            if(tmp.contains(motAChercher))
-            {
-                liste.add(tmp);
-            }
-        }
+    public static List<String[]> searchMovie(String name) {
+        List<String[]> liste = app.searchMovie(name);
         return liste;
     }
-    /**
-     *
-     * @param listFiles liste de n filenames (pas de chemin donc) triés par ordre croissant
-     * @param filename la clé à chercher
-     * @param min l'indice minimal. Initialement 0
-     * @param max l'indice maximal. Initialement n-1
-     * @return l'indice de la clé dans le tableau, -1 si absente
-     */
-    public static int BinarySearch(String[] listFiles, String filename, int min, int max)
-    {
-        if (min > max)
-            return -1;
-        final int middle = (min+max)/2;
-        if(filename.equals(listFiles[middle]))
-            return middle;
-        if(filename.compareToIgnoreCase(listFiles[middle]) < 0){
-            // On cherche dans la première moitiée
-            return BinarySearch(listFiles, filename, min, middle-1);
-        }else{
-            // On cherche dans la seconde moitiée
-            return BinarySearch(listFiles, filename, middle+1, max);
-        }
-        //TODO moyen ameliorer performance en ne renvoyant pas l'entiereté de la liste de fichiers
+    public static List<String[]> getAllMovies() {
+        List<String[]> liste = app.selectAllMovies();
+        return liste;
     }
     /*
         Fonctions Usuelles
      */
 
-    /**
-     *
-     * @return une liste des noms de fichiers avec chemin complet
-     */
-    private static String[] donnerListeFichiers()
-    {
-        List<String> liste = new ArrayList<>();
-        final long taille = getfR().longueurFichier();
-        final String sep = System.getProperty("line.separator"); //Pour détecter la fin du fichier
-        // Ne surtout pas oublier d'en mettre un nouveau sinon
-        // il pourrait commencer à lire à la fin du flux
-        getfR().setNewBufferedReader();
-        for(int i = 0; i < taille; i++) {
-            final String str = getfR().lire();
-            if(!str.equals(sep) && !str.equals("")) {
-                liste.add(str);
-            }
-        }
-        return liste.toArray(new String[liste.size()]);
-    }
-
-    /**
-     *
-     * @return une liste des noms de fichiers sans chemin
-     */
-    public static String[] donnerListeNomsF()
-    {
-        String []liste = donnerListeFichiers();
-        for (int i=0;i<liste.length;i++) {
-            final String mot = liste[i];
-            //On regarde la dernière occurence de / pour ne prendre que le nom du film sans le chemin
-            final int indice = mot.lastIndexOf(inter());
-            if(indice != -1) {
-                liste[i] = mot.substring(indice+1);
-            }
-        }
-        return liste;
-    }
-
-    /**
-     * On modifie la liste passée en paramètre en retirant toute extension
-     * @param liste la liste de noms dont on veut filtrer l'extensions
-     */
-    public static void filtrerExtensions(String[] liste) {
-        for(int i=0;i<liste.length;i++) {
-            final String mot = liste[i];
-            //On pourrait utiliser String.endswith pour voir avec quel extension on termine
-            //On filtre les extensions
-            final int indice = mot.lastIndexOf("."); //On suppose que tous les films ont une extension
-            if(indice != -1) {
-                liste[i] = mot.substring(0,indice);
-            }
-        }
+    private static String filtreExtension(String mot) {
+        final int indice = mot.lastIndexOf(".");
+        if(indice != -1)
+            return mot.substring(0, indice);
+        return mot;
     }
     /**
      *
@@ -334,20 +178,21 @@ public class CMB {
 
     //Tests
 
-    private static void test_init(SqliteManager app) {
-
-        app.insertUpdateFilm(true,0,"Star wars","action/",1977,new int[]{1,3},1);
-        app.insertUpdateFilm(true,0,"Star trek","sciencefiction/",1977,new int[]{1},1);
-        app.insertUpdateFilm(true,0,"La soupe aux choux","/francais",0,new int[]{2},1);
+    private static void test_init() {
+        app.insertUpdateFilm(true,0,"Star wars","action/","avi",1977,new int[]{1,3},1);
+        app.insertUpdateFilm(true,0,"Star trek","sciencefiction/","avi",1977,new int[]{1},1);
+        app.insertUpdateFilm(true,0,"La soupe aux choux","/francais","avi",0,new int[]{2},1);
         app.insertUpdateHarddisk(true,0,"Emtec");
         app.insertUpdateGenre(true,0,"Science-fiction");
         app.insertUpdateGenre(true,0,"Comédie");
         app.insertUpdateGenre(true,0,"Fantastique");
-        test_select(app);
-        app.searchMovie("Star wars");
+        if(isDebug()) {
+            test_select();
+            app.searchMovie("Star wars");
+        }
     }
 
-    private static void test_select(SqliteManager app) {
+    private static void test_select() {
         System.out.println();
         app.selectAllMovies();
         System.out.println();
@@ -366,23 +211,15 @@ public class CMB {
         return System.getProperty("os.name");
     }
 
-    public static FichierW getfW() {
-        return fW;
-    }
-
-    private static void setfW(FichierW fW) {
-        CMB.fW = fW;
-    }
-
-    public static FichierR getfR() {
-        return fR;
-    }
-
-    private static void setfR(FichierR fR) {
-        CMB.fR = fR;
-    }
-
     public static boolean isDebug() {
         return debug;
+    }
+
+    public static SqliteManager getApp() {
+        return app;
+    }
+
+    public static void setApp(SqliteManager app) {
+        CMB.app = app;
     }
 }

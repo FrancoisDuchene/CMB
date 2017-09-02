@@ -72,6 +72,7 @@ public class SqliteManager {
                 + "film_id integer NOT NULL PRIMARY KEY AUTOINCREMENT,\n"
                 + "name text NOT NULL,\n"
                 + "path text NOT NULL,\n"
+                + "extension text NOT NULL,\n"
                 + "year integer,\n"
                 + "harddrive_id integer,\n"
                 + "FOREIGN KEY('harddrive_id') REFERENCES 'harddisk'('harddisk') ON DELETE NO ACTION ON UPDATE NO ACTION\n"
@@ -89,8 +90,8 @@ public class SqliteManager {
         final String sql4 = "CREATE TABLE IF NOT EXISTS 'filmXgenre' (\n"
                 + "film_id integer,\n"
                 + "genre_id integer,\n"
-                + "FOREIGN KEY('film_id') REFERENCES 'film'('film_id') ON DELETE ACTION,\n"
-                + "FOREIGN KEY('genre_id') REFERENCES 'genre'('genre_id') ON DELETE ACTION\n"
+                + "FOREIGN KEY('film_id') REFERENCES 'film'('film_id') ON DELETE NO ACTION,\n"
+                + "FOREIGN KEY('genre_id') REFERENCES 'genre'('genre_id') ON DELETE NO ACTION\n"
                 + ");";
         try(Statement stmt = conn.createStatement()) {
             // on crée les nouvelles tables si elles n'existent pas
@@ -106,34 +107,34 @@ public class SqliteManager {
 
     //SELECT
 
-    public String[] selectAllMovies() {
-        final String sql = "SELECT film.film_id, film.name, film.path, film.year, genre.nom, harddisk.hd_nom FROM filmXgenre " +
+    public List<String[]> selectAllMovies() {
+        final String sql = "SELECT film.film_id, film.name, film.path, film.extension, film.year, genre.nom, harddisk.hd_nom FROM filmXgenre " +
                 "INNER JOIN film ON filmXgenre.film_id = film.film_id " +
                 "INNER JOIN genre ON filmXgenre.genre_id = genre.genre_id " +
                 "INNER JOIN harddisk ON harddisk.harddisk_id = film.harddrive_id ";
-        return stmtRS(sql,new String[]{"film_id","name","path","year","nom","hd_nom"},new byte[]{1,2,2,1,2,2});
+        return stmtRS(sql,new String[]{"film_id","name","path","extension","year","nom","hd_nom"},new byte[]{1,2,2,2,1,2,2});
     }
-    public String[] selectAllGenres() {
+    public List<String[]> selectAllGenres() {
         final String sql = "SELECT genre_id, nom FROM genre";
         return stmtRS(sql,new String[]{"genre_id","nom"},new byte[]{1,2});
     }
-    public String[] selectAllGenresAndMovies() {
+    public List<String[]> selectAllGenresAndMovies() {
         final String sql = "SELECT genre.nom, film.name FROM filmXgenre " +
                 "INNER JOIN genre ON filmXgenre.genre_id = genre.genre_id " +
                 "INNER JOIN film ON filmXgenre.film_id = film.film_id ";
         return stmtRS(sql,new String[]{"nom","name"},new byte[]{2,2});
     }
-    public String[] selectAllHarddives() {
+    public List<String[]> selectAllHarddives() {
         final String sql = "SELECT harddisk_id, hd_nom FROM harddisk";
         return stmtRS(sql,new String[]{"harddisk_id","hd_nom"},new byte[]{1,2});
     }
-    public String[] selectAllHarddrivesAndMovies() {
+    public List<String[]> selectAllHarddrivesAndMovies() {
         final String sql = "SELECT harddisk.hd_nom, film.name FROM film " +
                 "INNER JOIN harddisk ON film.harddrive_id = harddisk.harddisk_id";
         return stmtRS(sql,new String[]{"hd_nom","name"},new byte[]{2,2});
     }
 
-    private String[] stmtRS(String sql, String []args, byte[] meth) {
+    private List<String[]> stmtRS(String sql, String []args, byte[] meth) {
         try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             // on parcours l'ensemble des résultats
@@ -141,49 +142,55 @@ public class SqliteManager {
                 printRes_Debug(rs, args, meth);
                 return null;
             }
-            List<String> liste = new ArrayList<>();
+            List<String> film = new ArrayList<>();
+            List<String[]> liste = new ArrayList<>();
             while(rs.next()) {
-                liste.add("START_OF_TRACK");
                 for(int i=0;i<args.length;i++) {
                     switch (meth[i]) {
                         case 1:
-                            liste.add(Integer.toString(rs.getInt(args[i])));
+                            film.add(Integer.toString(rs.getInt(args[i])));
                             break;
                         case 2:
-                            liste.add(rs.getString(args[i]));
+                            film.add(rs.getString(args[i]));
                             break;
                         case 3:
-                            liste.add(Double.toString(rs.getDouble(args[i])));
+                            film.add(Double.toString(rs.getDouble(args[i])));
                             break;
                     }
                 }
+                liste.add(film.toArray(new String[film.size()]));
+                film.clear();
             }
             stmt.close();
-            return liste.toArray(new String[liste.size()]);
+            return liste;
         } catch (SQLException e) {
             e.printStackTrace();
             return null;
         }
     }
 
+    //TODO faire tests performances pour voir si utiliser des List<String[]> est plus avantageux qu'un String[]
     /**
      *
      * @param nom
      * @return la liste des attributs du film ou NULL si il y a eu une exception
      */
-    public String [] searchMovie(String nom) {
-        final String sql = "SELECT name, path, year, harddrive_id FROM film WHERE name = ? ";
+    public List<String[]> searchMovie(String nom) {
+        final String sql = "SELECT name, path, extension, year, harddrive_id FROM film WHERE name = ? ";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1,nom);
             ResultSet rs = pstmt.executeQuery();
             if(CMB.isDebug()) {
-                printRes_Debug(rs,new String[]{"name","path","year","harddrive_id"},new byte[]{2,2,1,1});
+                printRes_Debug(rs,new String[]{"name","path","extension","year","harddrive_id"},new byte[]{2,2,2,1,1});
             }
-            rs.next();
-            final String[] mov =  new String[]{rs.getString("name"),rs.getString("path"),
-                    Integer.toString(rs.getInt("year")),Integer.toString(rs.getInt("harddrive_id"))};
+            List<String[]> liste = new ArrayList<>();
+            while(rs.next()) {
+                final String[] mov =  new String[]{rs.getString("name"),rs.getString("path"),rs.getString("extension"),
+                        Integer.toString(rs.getInt("year")),Integer.toString(rs.getInt("harddrive_id"))};
+                liste.add(mov);
+            }
             pstmt.close();
-            return mov;
+            return liste;
         } catch(SQLException e) {
             e.printStackTrace();
             return null;
@@ -250,15 +257,15 @@ public class SqliteManager {
      * @param genre_id
      * @param harddrive_id
      */
-    public boolean insertUpdateFilm(boolean mode,int id, String name, String path,
+    public boolean insertUpdateFilm(boolean mode,int id, String name, String path, String extension,
                                  int year, int[] genre_id, int harddrive_id) {
         final String sql, sql2 = "INSERT INTO filmXgenre(film_id, genre_id) VALUES((" +
                 "SELECT film_id FROM film WHERE name = ?)," +
                 "?)";
         if(mode) {
-            sql = "INSERT INTO film(name,path,year,harddrive_id) VALUES(?,?,?,?)";
+            sql = "INSERT INTO film(name,path,extension,year,harddrive_id) VALUES(?,?,?,?,?)";
         }else{
-            sql = "UPDATE film SET name = ? , path = ? , " +
+            sql = "UPDATE film SET name = ? , path = ? , extension = ? ," +
                     "year = ? , genre_id = ? , harddrive_id = ? " +
                     "WHERE film_id = ?";
         }
@@ -266,21 +273,23 @@ public class SqliteManager {
             //On modifie la table film
             pstmt.setString(1, name);
             pstmt.setString(2, path);
-            pstmt.setInt(3, year);
-            pstmt.setInt(4, harddrive_id);
+            pstmt.setString(3,extension);
+            pstmt.setInt(4, year);
+            pstmt.setInt(5, harddrive_id);
             if(!mode)
-                pstmt.setInt(5,id);
+                pstmt.setInt(6,id);
             pstmt.executeUpdate();
             //On modifie la table filmXgenre
-
-            PreparedStatement pstmt2 = conn.prepareStatement(sql2);
-            pstmt2.setString(1,name);
-            for(int i=0;i<genre_id.length;i++) {
-                pstmt2.setInt(2,genre_id[i]);
-                pstmt2.executeUpdate();
+            if(genre_id != null) {
+                PreparedStatement pstmt2 = conn.prepareStatement(sql2);
+                pstmt2.setString(1,name);
+                for(int i=0;i<genre_id.length;i++) {
+                    pstmt2.setInt(2,genre_id[i]);
+                    pstmt2.executeUpdate();
+                }
+                pstmt2.close();
             }
             pstmt.close();
-            pstmt2.close();
             return true;
         } catch(SQLException e) {
             e.printStackTrace();
