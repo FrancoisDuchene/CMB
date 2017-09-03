@@ -21,6 +21,7 @@ import org.sqlite.SQLiteConfig;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -107,34 +108,36 @@ public class SqliteManager {
 
     //SELECT
 
-    public List<String[]> selectAllMovies() {
-        final String sql = "SELECT film.film_id, film.name, film.path, film.extension, film.year, genre.nom, harddisk.hd_nom FROM filmXgenre " +
+    public String[][] selectAllMovies() {
+        final String sql = "SELECT film.film_id, film.name, film.path, film.extension, " +
+                "film.year, genre.nom, harddisk.hd_nom FROM filmXgenre " +
                 "INNER JOIN film ON filmXgenre.film_id = film.film_id " +
                 "INNER JOIN genre ON filmXgenre.genre_id = genre.genre_id " +
                 "INNER JOIN harddisk ON harddisk.harddisk_id = film.harddrive_id ";
-        return stmtRS(sql,new String[]{"film_id","name","path","extension","year","nom","hd_nom"},new byte[]{1,2,2,2,1,2,2});
+        return stmtRS(sql,new String[]{"film_id","name","path","extension",
+                        "year","hd_nom","nom"},new byte[]{1,2,2,2,1,2,2});
     }
-    public List<String[]> selectAllGenres() {
+    public String[][] selectAllGenres() {
         final String sql = "SELECT genre_id, nom FROM genre";
         return stmtRS(sql,new String[]{"genre_id","nom"},new byte[]{1,2});
     }
-    public List<String[]> selectAllGenresAndMovies() {
+    public String[][] selectAllGenresAndMovies() {
         final String sql = "SELECT genre.nom, film.name FROM filmXgenre " +
                 "INNER JOIN genre ON filmXgenre.genre_id = genre.genre_id " +
                 "INNER JOIN film ON filmXgenre.film_id = film.film_id ";
         return stmtRS(sql,new String[]{"nom","name"},new byte[]{2,2});
     }
-    public List<String[]> selectAllHarddives() {
+    public String[][] selectAllHarddives() {
         final String sql = "SELECT harddisk_id, hd_nom FROM harddisk";
         return stmtRS(sql,new String[]{"harddisk_id","hd_nom"},new byte[]{1,2});
     }
-    public List<String[]> selectAllHarddrivesAndMovies() {
+    public String[][] selectAllHarddrivesAndMovies() {
         final String sql = "SELECT harddisk.hd_nom, film.name FROM film " +
                 "INNER JOIN harddisk ON film.harddrive_id = harddisk.harddisk_id";
         return stmtRS(sql,new String[]{"hd_nom","name"},new byte[]{2,2});
     }
 
-    private List<String[]> stmtRS(String sql, String []args, byte[] meth) {
+    private String[][] stmtRS(String sql, String []args, byte[] meth) {
         try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             // on parcours l'ensemble des résultats
@@ -143,7 +146,7 @@ public class SqliteManager {
                 return null;
             }
             List<String> film = new ArrayList<>();
-            List<String[]> liste = new ArrayList<>();
+            List<List<String>> liste = new ArrayList<>();
             while(rs.next()) {
                 for(int i=0;i<args.length;i++) {
                     switch (meth[i]) {
@@ -158,11 +161,16 @@ public class SqliteManager {
                             break;
                     }
                 }
-                liste.add(film.toArray(new String[film.size()]));
+                liste.add(film);
                 film.clear();
             }
             stmt.close();
-            return liste;
+            String[][] array = new String[liste.size()][];
+            int i=0;
+            for(List<String> nestedList : liste) {
+                array[i++] = nestedList.toArray(new String[nestedList.size()]);
+            }
+            return array;
         } catch (SQLException e) {
             e.printStackTrace();
             return null;
@@ -240,6 +248,26 @@ public class SqliteManager {
             pstmt.close();
             return liste.toArray(new String[liste.size()]);
         } catch(SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public int[] getIdAllGenresOfMovie(String nom) {
+        final int id = getIdOfMovie(nom);
+        final String sql = "SELECT genre_id FROM filmXgenre WHERE film_id = ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1,id);
+            ResultSet rs = pstmt.executeQuery();
+            List<Integer> liste = new ArrayList<>();
+            while(rs.next()) {
+                liste.add(rs.getInt(1));
+            }
+            pstmt.close();
+            //On ne peut pas caster directement faire int[]
+            final Integer[] ls = liste.toArray(new Integer[liste.size()]);
+            return Arrays.stream(ls).mapToInt(Integer::intValue).toArray();
+        } catch (SQLException e) {
             e.printStackTrace();
             return null;
         }

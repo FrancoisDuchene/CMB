@@ -121,9 +121,18 @@ public class CMB {
         List<String[]> liste = app.searchMovie(name);
         return liste;
     }
-    public static List<String[]> getAllMovies() {
-        List<String[]> liste = app.selectAllMovies();
-        return liste;
+    public static Movie[] getAllMovies() {
+        final String[][] liste = app.selectAllMovies();
+        Movie[] movies = new Movie[liste.length];
+        int i=0;
+        for(String[] film : liste) {
+            int[] genres = app.getIdAllGenresOfMovie(film[0]);
+            Movie mov = new Movie(Integer.parseInt(film[0]),film[1],film[2],film[3],
+                    Integer.parseInt(film[4]),Integer.parseInt(film[5]),genres);
+            movies[i] = mov;
+            i++;
+        }
+        return movies;
     }
     /*
         Fonctions Usuelles

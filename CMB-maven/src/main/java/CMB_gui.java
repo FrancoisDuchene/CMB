@@ -1,13 +1,4 @@
-import javax.swing.GroupLayout;
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
+import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 
@@ -50,7 +41,7 @@ final class CMB_gui extends JFrame{
     {
         // Caractéristiques de base
         super();
-        this.setTitle("CMB");
+        this.setTitle("Central Movie dataBase");
         this.setSize(screenSizeDimension());
         this.setLocationRelativeTo(null);
         this.setResizable(true);
@@ -65,6 +56,9 @@ final class CMB_gui extends JFrame{
         princ.setLayout(gl);
         gl.setAutoCreateContainerGaps(true);
         gl.setAutoCreateGaps(true);
+        //On crée la table principale qui contiendra les données
+        String[] nomColonnes = {"ID", "Nom", "Chemin","Extension","Année","ID harddrive","ID genre(s)"};
+        JTable table = new JTable();
         // On cree un JTextArea qui contiendra la liste des noms de fichiers
         JTextArea area = new JTextArea();
         JScrollPane spane = new JScrollPane(area);
@@ -104,8 +98,7 @@ final class CMB_gui extends JFrame{
                 "A propos", JOptionPane.INFORMATION_MESSAGE));
 
         //Quand on lance l'app, elle nous affiche directement tous les films
-        final java.util.List<String[]> films = CMB.getAllMovies();
-        printToArea(area,films,new String[]{"ID","Nom","Chemin","année","genre","Disque Dur"});
+        final Movie[] films = CMB.getAllMovies();
         // On ajoute les coomposants
         Fichier.add(majBD);
         Fichier.add(rechMot);
