@@ -57,8 +57,8 @@ final class CMB_gui extends JFrame{
         gl.setAutoCreateContainerGaps(true);
         gl.setAutoCreateGaps(true);
         //On crée la table principale qui contiendra les données
-        String[] nomColonnes = {"ID", "Nom", "Chemin","Extension","Année","ID harddrive","ID genre(s)"};
-        JTable table = new JTable();
+        //String[] nomColonnes = {"ID", "Nom", "Chemin","Extension","Année","ID harddrive","ID genre(s)"};
+        //JTable table = new JTable();
         // On cree un JTextArea qui contiendra la liste des noms de fichiers
         JTextArea area = new JTextArea();
         JScrollPane spane = new JScrollPane(area);

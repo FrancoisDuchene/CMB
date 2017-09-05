@@ -34,8 +34,8 @@ import java.sql.*;
  * @since v0.1
  */
 public class CMB {
-    private static SqliteManager app;
     private static final boolean debug = false;
+    private static SqliteManager app;
     private CMB(){}
 
     /*On n'essaie pas encore de faire une base donnée parfaite, on veut pour l'instant
@@ -53,6 +53,9 @@ public class CMB {
         final boolean DBExist = isDBExist();
         final String filename = cheminBD() + inter() + "Films.db";
         app = new SqliteManager(filename);
+        if(!DBExist) {
+
+        }
         //test_init();
         SwingUtilities.invokeLater(CMB_gui::new);
     }
@@ -75,6 +78,20 @@ public class CMB {
             return false;
         }
         return true;
+    }
+
+    private static void DBInit() {
+        app.insertUpdateGenre(true,0,"N/A");
+        app.insertUpdateGenre(true,0,"Science-Fiction");
+        app.insertUpdateGenre(true,0,"Action");
+        app.insertUpdateGenre(true,0,"Fantastique");
+        app.insertUpdateGenre(true,0,"Horreur");
+        app.insertUpdateGenre(true,0,"Comedie");
+        app.insertUpdateGenre(true,0,"Policier");
+        app.insertUpdateGenre(true,0,"Thriller");
+        app.insertUpdateGenre(true,0,"Drame");
+        app.insertUpdateGenre(true,0,"Parodie");
+        app.insertUpdateHarddisk(true,0,"N/A");
     }
     /*
         Fonctions pour réaliser la liste de films
