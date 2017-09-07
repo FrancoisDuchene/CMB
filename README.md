@@ -1,8 +1,21 @@
 # Central Movie dataBase
-Small project
+A lightweight movie database manager using *SQLite* and *Swing*.
 
-A program that can save a list of nameFiles (of movies in this case).
-It can search thought the file to find the name of the movie you wanted and his path.
-Imagine you have several disk drives, like this you can easily find where it is, or simply verify that you have a movie stocked somewhere, etc...
 
-Simple visual interface made with java.swing. No plugin used.
+#### Features
+
+* Import movies into database simply
+* Search though the database the movie you are looking for
+
+#### Informations
+
+Java 8 is needed to run the project.
+
+Current version is 0.3.
+
+Build with maven. UI made with *Java Swing*. 
+
+##### Dependencies
+
+* JDBC driver : v3.20.0
+* junit : v4.12
