@@ -1,10 +1,6 @@
-import javax.swing.*;
-import java.awt.*;
-import java.io.File;
-
 /*
  This program is an database manager. This source file is the GUI part of it
- Central Movie Base, CMB for short, version is currently : 0.3
+ Central Movie dataBase, CMB for short, current version is : 0.3
  Copyright (C) 2017  Vinsifroid ~ François Duchêne
 
  This program is free software: you can redistribute it and/or modify
@@ -20,6 +16,20 @@ import java.io.File;
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+import javax.swing.GroupLayout;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.io.File;
 
 /**
  * Cette classe définit la fenêtre principale de l'application

@@ -1,6 +1,6 @@
 /*
  This program is an database manager. This source file is main part of it
- Central Movie Base, CMB for short, version is currently : 0.3
+ Central Movie dataBase, CMB for short, current version is : 0.3
  Copyright (C) 2017  Vinsifroid ~ François Duchêne
 
  This program is free software: you can redistribute it and/or modify
@@ -17,9 +17,13 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import org.sqlite.SQLiteConfig;
-
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -44,9 +48,6 @@ public class SqliteManager {
         try {
             // Paramètres de la bdd
             final String url = "jdbc:sqlite:" + filename;
-            //Pour faire en sorte qu'il tienne compte des clés étrangères
-            /*SQLiteConfig config = new SQLiteConfig();
-            config.enforceForeignKeys(true);*/
             //On crée la connection à la bdd. Si elle n'existe pas elle est automatiquement crée
             conn = DriverManager.getConnection(url/*,config.toProperties()*/);
             DatabaseMetaData meta = conn.getMetaData();
@@ -186,7 +187,7 @@ public class SqliteManager {
     public List<String[]> searchMovie(String nom) {
         final String sql = "SELECT name, path, extension, year, harddrive_id FROM film WHERE name = ? ";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1,nom);
+            pstmt.setString((int)1, nom);
             ResultSet rs = pstmt.executeQuery();
             if(CMB.isDebug()) {
                 printRes_Debug(rs,new String[]{"name","path","extension","year","harddrive_id"},new byte[]{2,2,2,1,1});

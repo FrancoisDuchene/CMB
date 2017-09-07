@@ -1,14 +1,6 @@
-package fichier;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-
 /*
  This program is an database manager. This source file is the file writing part
- Central Movie Base, CMB for short, version is currently : 0.1
+ Central Movie dataBase, CMB for short, current version is : 0.3
  Copyright (C) 2017  Vinsifroid ~ François Duchêne
 
  This program is free software: you can redistribute it and/or modify
@@ -24,6 +16,15 @@ import java.io.PrintWriter;
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+package fichier;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+
 /**
  * Une classe qui gère les flux d'écriture d'un fichier
  * @author vinsifroid

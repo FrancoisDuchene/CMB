@@ -1,18 +1,6 @@
-import fichier.FichierR;
-import fichier.FichierW;
-
-import javax.swing.SwingUtilities;
-import java.io.File;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.sql.*;
-
 /*
  This program is an database manager. This source file is main part of it
- Central Movie Base, CMB for short, version is currently : 0.3
+ Central Movie dataBase, CMB for short, current version is : 0.3
  Copyright (C) 2017  Vinsifroid ~ François Duchêne
 
  This program is free software: you can redistribute it and/or modify
@@ -28,8 +16,18 @@ import java.sql.*;
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+import fichier.FichierR;
+import fichier.FichierW;
+
+import javax.swing.SwingUtilities;
+import java.io.File;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+
 /**
- * Cette classe a les fonctions basiques de l'application
+ * This class have the basics functions of the app
  * @author vinsifroid
  * @since v0.1
  */
@@ -38,11 +36,6 @@ public class CMB {
     private static SqliteManager app;
     private CMB(){}
 
-    /*On n'essaie pas encore de faire une base donnée parfaite, on veut pour l'instant
-    seulement pouvoir y accéder via ce programme.
-    Pour ce qui est de la structure de la BD, on va utiliser un simple fichier texte.
-    EDIT : en train de migrer vers SQLite
-     */
     public static void main(String [] args)
     {
         System.out.println("Central Movie Database - " + dateActuelle());
@@ -54,7 +47,7 @@ public class CMB {
         final String filename = cheminBD() + inter() + "Films.db";
         app = new SqliteManager(filename);
         if(!DBExist) {
-
+            DBInit();
         }
         //test_init();
         SwingUtilities.invokeLater(CMB_gui::new);
@@ -202,31 +195,6 @@ public class CMB {
         return path;
     }
 
-    //Tests
-
-    private static void test_init() {
-        app.insertUpdateFilm(true,0,"Star wars","action/","avi",1977,new int[]{1,3},1);
-        app.insertUpdateFilm(true,0,"Star trek","sciencefiction/","avi",1977,new int[]{1},1);
-        app.insertUpdateFilm(true,0,"La soupe aux choux","/francais","avi",0,new int[]{2},1);
-        app.insertUpdateHarddisk(true,0,"Emtec");
-        app.insertUpdateGenre(true,0,"Science-fiction");
-        app.insertUpdateGenre(true,0,"Comédie");
-        app.insertUpdateGenre(true,0,"Fantastique");
-        if(isDebug()) {
-            test_select();
-            app.searchMovie("Star wars");
-        }
-    }
-
-    private static void test_select() {
-        System.out.println();
-        app.selectAllMovies();
-        System.out.println();
-        app.selectAllGenres();
-        System.out.println();
-        app.selectAllHarddives();
-        System.out.println();
-    }
 
     private static String inter()
     {
