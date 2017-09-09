@@ -25,7 +25,7 @@ public class MovieTest {
     private Movie mov;
     @Before
     public void setUp() throws Exception {
-        mov = new Movie(1,"La grande Vadrouille","/Videos/French","avi",1966,13,new int[]{3,5});
+        mov = new Movie(1,"La grande Vadrouille","/Videos/French","avi", "language", "subtitles", 1966,13,new int[]{3,5});
     }
 
     @Test

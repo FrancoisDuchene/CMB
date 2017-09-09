@@ -21,15 +21,13 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
-
 public class dataTableModelTest {
     private dataTableModel model;
     @Before
     public void setUp() throws Exception {
-        Movie[] movies = new Movie[]{new Movie(1,"La grande Vadrouille","/Videos/French","avi",1966,13,new int[]{3,5}),
-                new Movie(2,"Star Wars","/Videos/action","mov",1977,1,null),
-                new Movie(3,"Avatar","/Videos/action","mp4",2007,1,new int[]{1,4,6})};
+        Movie[] movies = new Movie[]{new Movie(1,"La grande Vadrouille","/Videos/French","avi", "language", "subtitles", 1966,13,new int[]{3,5}),
+                new Movie(2,"Star Wars","/Videos/action","mov", "language", "subtitles", 1977,1,null),
+                new Movie(3,"Avatar","/Videos/action","mp4", "language", "subtitles", 2007,1,new int[]{1,4,6})};
         model = new dataTableModel(movies);
     }
 
@@ -42,7 +40,7 @@ public class dataTableModelTest {
     @Test
     public void getColumnCount() throws Exception {
         final int returnVal = model.getColumnCount();
-        Assert.assertEquals(7,returnVal);
+        Assert.assertEquals(9,returnVal);
     }
 
     @Test
@@ -56,9 +54,9 @@ public class dataTableModelTest {
         int k = (int) model.getValueAt(0,0);
         Assert.assertEquals(1,k);
         //test genres_id
-        String genres = (String) model.getValueAt(1,6);
+        String genres = (String) model.getValueAt(1,8);
         Assert.assertEquals(null,genres);
-        genres = (String) model.getValueAt(2,6);
+        genres = (String) model.getValueAt(2,8);
         Assert.assertEquals("1 4 6 ",genres);
     }
 
@@ -71,7 +69,7 @@ public class dataTableModelTest {
     @Test
     public void addMovie() throws Exception {
         final int original = model.getRowCount();
-        model.addMovie(new Movie(4,"Interstellar","/Videos/","mp4",2014,2,new int[]{4}));
+        model.addMovie(new Movie(4,"Interstellar","/Videos/","mp4", "language", "subtitles", 2014,2,new int[]{4}));
         Assert.assertEquals(original+1,model.getRowCount());
     }
 

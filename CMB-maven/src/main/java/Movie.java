@@ -22,24 +22,31 @@ public class Movie {
     private String name;
     private String path;
     private String extension;
+    private String language;
+    private String subtitles;
+    //TODO add a nationality attribut, should change the bdd in consequence
     private int year;
     private int harddrive_id;
     private int[] genres_id;
 
-    public Movie(int id, String name, String path, String extension, int year, int harddrive_id, int[] genre_id) {
+    public Movie(int id, String name, String path, String extension, String language, String subtitles, int year, int harddrive_id, int[] genre_id) {
         this.id = id;
         this.name = name;
         this.path = path;
         this.extension = extension;
+        this.language = language;
+        this.subtitles = subtitles;
         this.year = year;
         this.harddrive_id = harddrive_id;
         this.genres_id = genre_id;
     }
-    public Movie(int id, String name, String path, String extension, int year, int harddrive_id) {
+    public Movie(int id, String name, String path, String extension, String language, String subtitles, int year, int harddrive_id) {
         this.id = id;
         this.name = name;
         this.path = path;
         this.extension = extension;
+        this.language = language;
+        this.subtitles = subtitles;
         this.year = year;
         this.harddrive_id = harddrive_id;
         genres_id = null;
@@ -99,5 +106,21 @@ public class Movie {
 
     public void setGenres_id(int[] genres_id) {
         this.genres_id = genres_id;
+    }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
+    }
+
+    public String getSubtitles() {
+        return subtitles;
+    }
+
+    public void setSubtitles(String subtitles) {
+        this.subtitles = subtitles;
     }
 }

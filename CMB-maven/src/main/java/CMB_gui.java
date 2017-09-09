@@ -93,19 +93,24 @@ final class CMB_gui extends JFrame{
                     JOptionPane.QUESTION_MESSAGE);
             if(rep != null) {
                 Movie[] movies = CMB.searchMovie(rep);
-                model.clearAll();
-                for(Movie mov : movies) {
-                    model.addMovie(mov);
+                if(movies != null) {
+                    if(movies[0] != null) {
+                        model.clearAll();
+                        addAllMoviesToModel(model,movies);
+                    }
+                }else {
+                    JOptionPane.showMessageDialog(null,"Aucun résultat trouvé !","Résultat",JOptionPane.INFORMATION_MESSAGE);
                 }
             }
         });
         APropo = new JMenuItem("A propos");
         //TODO enregistrer certaines propriétés (version, date de build) dans un fichier texte géré par des properties
-        APropo.addActionListener(event -> JOptionPane.showMessageDialog(null, "Version 0.3 : Build du " + CMB.dateActuelle() + "\nDéveloppeur : vinsifroid",
+        APropo.addActionListener(event -> JOptionPane.showMessageDialog(null, "Version 0.4.1 : Build du " + CMB.dateActuelle() + "\nDéveloppeur : vinsifroid",
                 "A propos", JOptionPane.INFORMATION_MESSAGE));
 
         //Quand on lance l'app, elle nous affiche directement tous les films
         final Movie[] films = CMB.getAllMovies();
+        addAllMoviesToModel(model,films);
         // On ajoute les coomposants
         Fichier.add(majBD);
         Fichier.add(rechMot);
@@ -132,6 +137,13 @@ final class CMB_gui extends JFrame{
         }
         final long endTime = System.currentTimeMillis();
         System.out.println("Fait le " + CMB.dateActuelle() + " en " + (endTime - startTime) + " ms");
+    }
+
+    private void addAllMoviesToModel(dataTableModel model, Movie[] movies) {
+        //TODO Do a perf test to see if this is more efficient than do a 'addAll' method in the model
+        for(Movie mov : movies) {
+            model.addMovie(mov);
+        }
     }
 
     // Permet d'avoir les dimensions de l'écran (largeur + hauteur)

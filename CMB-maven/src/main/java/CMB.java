@@ -17,9 +17,6 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import fichier.FichierR;
-import fichier.FichierW;
-
 import javax.swing.SwingUtilities;
 import java.io.File;
 import java.time.LocalDate;
@@ -105,19 +102,19 @@ public class CMB {
                 else if (nomSuf.endsWith("avi")) {
                     final String path = file2.getAbsolutePath();
                     final String nom = filtreExtension(nomSuf);
-                    app.insertUpdateFilm(true,0,nom,path,".avi",0,null,1);
+                    app.insertUpdateFilm(true,0,nom,path,".avi","","",0,null,1);
                 }else if (nomSuf.endsWith("mp4")) {
                     final String path = file2.getPath();
                     final String nom = filtreExtension(nomSuf);
-                    app.insertUpdateFilm(true,0,nom,path,"mp4",0,null,1);
+                    app.insertUpdateFilm(true,0,nom,path,"mp4","","",0,null,1);
                 }else if (nomSuf.endsWith("mkv")) {
                     final String path = file2.getPath();
                     final String nom = filtreExtension(nomSuf);
-                    app.insertUpdateFilm(true,0,nom,path,"mkv",0,null,1);
+                    app.insertUpdateFilm(true,0,nom,path,"mkv","","",0,null,1);
                 }else if (nomSuf.endsWith("mov")) {
                     final String path = file2.getPath();
                     final String nom = filtreExtension(nomSuf);
-                    app.insertUpdateFilm(true,0,nom,path,"mov",0,null,1);
+                    app.insertUpdateFilm(true,0,nom,path,"mov","","",0,null,1);
                 }
             }
         }
@@ -136,7 +133,7 @@ public class CMB {
         for(String[] film : liste) {
             int[] genres = app.getIdAllGenresOfMovie(film[0]);
             Movie mov = new Movie(Integer.parseInt(film[0]),film[1],film[2],film[3],
-                    Integer.parseInt(film[4]),Integer.parseInt(film[5]),genres);
+                    film[4], film[5], Integer.parseInt(film[6]),Integer.parseInt(film[7]),genres);
             movies[i] = mov;
             i++;
         }

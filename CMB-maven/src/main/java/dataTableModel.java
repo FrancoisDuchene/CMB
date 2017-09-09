@@ -24,7 +24,7 @@ import java.util.List;
  */
 public class dataTableModel extends AbstractTableModel{
     private final List<Movie> data = new ArrayList<Movie>();
-    private final String[] header = {"ID", "Nom", "Chemin","Extension","Année","ID harddrive","ID genre(s)"};
+    private final String[] header = {"ID", "Nom", "Chemin","Extension","Langue","Sous-titres","Année","ID harddrive","ID genre(s)"};
 
     public dataTableModel(Movie[] data) {
         super();
@@ -58,10 +58,14 @@ public class dataTableModel extends AbstractTableModel{
             case 3:
                 return data.get(rowIndex).getExtension();
             case 4:
-                return data.get(rowIndex).getYear();
+                return data.get(rowIndex).getLanguage();
             case 5:
-                return data.get(rowIndex).getHarddrive_id();
+                return data.get(rowIndex).getSubtitles();
             case 6:
+                return data.get(rowIndex).getYear();
+            case 7:
+                return data.get(rowIndex).getHarddrive_id();
+            case 8:
                 if(data.get(rowIndex).getGenres_id() != null) {
                     String genres = "";
                     final int genreLength = data.get(rowIndex).getGenres_id().length;
@@ -82,9 +86,9 @@ public class dataTableModel extends AbstractTableModel{
         switch(columnIndex) {
             case 1:
                 return Integer.class;
-            case 4:
+            case 6:
                 return Integer.class;
-            case 5:
+            case 7:
                 return Integer.class;
             default:
                 return String.class;
