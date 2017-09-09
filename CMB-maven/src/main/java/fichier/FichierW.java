@@ -1,6 +1,6 @@
 /*
  This program is an database manager. This source file is the file writing part
- Central Movie dataBase, CMB for short, current version is : 0.3
+ Central Movie dataBase, CMB for short, current version is : 0.4
  Copyright (C) 2017  Vinsifroid ~ François Duchêne
 
  This program is free software: you can redistribute it and/or modify
