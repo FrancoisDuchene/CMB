@@ -1,6 +1,6 @@
 /*
  This program is an database manager. This source file is main part of it
- Central Movie dataBase, CMB for short, current version is : 0.3
+ Central Movie dataBase, CMB for short, current version is : 0.4
  Copyright (C) 2017  Vinsifroid ~ François Duchêne
 
  This program is free software: you can redistribute it and/or modify
@@ -28,9 +28,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Created by vinsifroid on 29/08/17.
- */
 public class SqliteManager {
     private final String filename;
     private Connection conn;
@@ -184,22 +181,22 @@ public class SqliteManager {
      * @param nom
      * @return la liste des attributs du film ou NULL si il y a eu une exception
      */
-    public List<String[]> searchMovie(String nom) {
-        final String sql = "SELECT name, path, extension, year, harddrive_id FROM film WHERE name = ? ";
+    public Movie[] searchMovie(String nom) {
+        final String sql = "SELECT film_id, name, path, extension, year, harddrive_id FROM film WHERE name = ? ";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString((int)1, nom);
             ResultSet rs = pstmt.executeQuery();
             if(CMB.isDebug()) {
-                printRes_Debug(rs,new String[]{"name","path","extension","year","harddrive_id"},new byte[]{2,2,2,1,1});
+                printRes_Debug(rs,new String[]{"film_id","name","path","extension","year","harddrive_id"},new byte[]{1,2,2,2,1,1});
             }
-            List<String[]> liste = new ArrayList<>();
+            List<Movie> liste = new ArrayList<>();
             while(rs.next()) {
-                final String[] mov =  new String[]{rs.getString("name"),rs.getString("path"),rs.getString("extension"),
-                        Integer.toString(rs.getInt("year")),Integer.toString(rs.getInt("harddrive_id"))};
+                final Movie mov = new Movie(rs.getInt("film_id"),rs.getString("name"),rs.getString("path"),rs.getString("extension"),
+                        rs.getInt("year"),rs.getInt("harddrive_id"));
                 liste.add(mov);
             }
             pstmt.close();
-            return liste;
+            return liste.toArray(new Movie[liste.size()]);
         } catch(SQLException e) {
             e.printStackTrace();
             return null;

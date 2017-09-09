@@ -1,6 +1,6 @@
 /*
  This program is an database manager. This source file is the GUI part of it
- Central Movie dataBase, CMB for short, current version is : 0.3
+ Central Movie dataBase, CMB for short, current version is : 0.4
  Copyright (C) 2017  Vinsifroid ~ François Duchêne
 
  This program is free software: you can redistribute it and/or modify
@@ -26,7 +26,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
+import javax.swing.JTable;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.io.File;
@@ -67,15 +67,12 @@ final class CMB_gui extends JFrame{
         gl.setAutoCreateContainerGaps(true);
         gl.setAutoCreateGaps(true);
         //On crée la table principale qui contiendra les données
-        //String[] nomColonnes = {"ID", "Nom", "Chemin","Extension","Année","ID harddrive","ID genre(s)"};
-        //JTable table = new JTable();
-        // On cree un JTextArea qui contiendra la liste des noms de fichiers
-        JTextArea area = new JTextArea();
-        JScrollPane spane = new JScrollPane(area);
-        area.setLineWrap(true);
-        area.setWrapStyleWord(true);
-        area.setEditable(false);
-        area.setVisible(true);
+        dataTableModel model = new dataTableModel(CMB.getAllMovies());
+        JTable table = new JTable(model);
+        table.setDefaultRenderer(Integer.class, new integerCellRenderer());
+        //The scrollPane for table
+        //TODO vérifier si c'est bien afficher sur le contentPane
+        JScrollPane spane = new JScrollPane(table);
         gl.setHorizontalGroup(gl.createParallelGroup().addComponent(spane));
         gl.setVerticalGroup(gl.createSequentialGroup().addComponent(spane));
         // Barre de menu
@@ -95,11 +92,11 @@ final class CMB_gui extends JFrame{
             String rep = JOptionPane.showInputDialog(null, "Introduisez un mot à chercher", "Requête",
                     JOptionPane.QUESTION_MESSAGE);
             if(rep != null) {
-                java.util.List<String[]> listRes = CMB.searchMovie(rep);
-                printToArea(area,listRes,new String[]{"nom","chemin","année","disque dur"});
-                //Make sure the new text is visible, even if there
-                //was a selection in the text area.
-                area.setCaretPosition(area.getDocument().getLength());
+                Movie[] movies = CMB.searchMovie(rep);
+                model.clearAll();
+                for(Movie mov : movies) {
+                    model.addMovie(mov);
+                }
             }
         });
         APropo = new JMenuItem("A propos");
@@ -135,22 +132,6 @@ final class CMB_gui extends JFrame{
         }
         final long endTime = System.currentTimeMillis();
         System.out.println("Fait le " + CMB.dateActuelle() + " en " + (endTime - startTime) + " ms");
-    }
-
-    private void printToArea(JTextArea area, java.util.List<String[]> films, String[] nomsChamps) {
-        final String esp = "\t\t";
-        area.setText("");
-        for(String champ : nomsChamps) {
-            area.append(champ + esp);
-        }
-        area.append("\n");
-        for(String [] listeFilms : films) {
-            for (String attribut : listeFilms) {
-                // Quand on rencontre un mot de la liste, on l'ajoute a l'area
-                area.append(attribut + esp);
-            }
-            area.append("\n");
-        }
     }
 
     // Permet d'avoir les dimensions de l'écran (largeur + hauteur)

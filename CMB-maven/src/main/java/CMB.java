@@ -1,6 +1,6 @@
 /*
  This program is an database manager. This source file is main part of it
- Central Movie dataBase, CMB for short, current version is : 0.3
+ Central Movie dataBase, CMB for short, current version is : 0.4
  Copyright (C) 2017  Vinsifroid ~ François Duchêne
 
  This program is free software: you can redistribute it and/or modify
@@ -24,7 +24,6 @@ import javax.swing.SwingUtilities;
 import java.io.File;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 
 /**
  * This class have the basics functions of the app
@@ -49,13 +48,12 @@ public class CMB {
         if(!DBExist) {
             DBInit();
         }
-        //test_init();
         SwingUtilities.invokeLater(CMB_gui::new);
     }
     private static boolean createFolder() {
         final String ch = cheminBD();
         File folder = new File(ch);
-        // On verifie que le dossier BaseDonnee existe
+        // We verify that BaseDonnee folder exist
         if(!folder.exists() && !folder.isDirectory())
         {
             if(!folder.mkdirs())
@@ -87,18 +85,18 @@ public class CMB {
         app.insertUpdateHarddisk(true,0,"N/A");
     }
     /*
-        Fonctions pour réaliser la liste de films
+        Functions to realize the movie list
      */
     public static void findFiles(File file1)
     {
-        //TODO Ajouter de nouveaux filtres pour ajouter automatiquement les genres, années,...
-        //TODO faire un système pour retenir des films qui existent déjà dans la db et avertir l'utilisateur
+        //TODO Add new filters to automatically add genre, years, ...
+        //TODO Make an alert when the user try to add movies that already exists in the db and warn him
         File[] list = file1.listFiles();
         if(list!=null)
         {
             for(File file2 : list)
             {
-                //TODO tester performance de stocker nomSuf au lieu de faire des appels à fonction dans chaque if
+                //TODO do performance test to see if stock nomSuf instead of do a call to each if is more efficient
                 final String nomSuf = file2.getName();
                 if (file2.isDirectory())
                 {
@@ -107,7 +105,7 @@ public class CMB {
                 else if (nomSuf.endsWith("avi")) {
                     final String path = file2.getAbsolutePath();
                     final String nom = filtreExtension(nomSuf);
-                    app.insertUpdateFilm(true,0,nom,path,".mov",0,null,1);
+                    app.insertUpdateFilm(true,0,nom,path,".avi",0,null,1);
                 }else if (nomSuf.endsWith("mp4")) {
                     final String path = file2.getPath();
                     final String nom = filtreExtension(nomSuf);
@@ -125,10 +123,10 @@ public class CMB {
         }
     }
     /*
-        Fonctions interaction avec la bdd
+        Function to interact with the db
      */
-    public static List<String[]> searchMovie(String name) {
-        List<String[]> liste = app.searchMovie(name);
+    public static Movie[] searchMovie(String name) {
+        Movie[] liste = app.searchMovie(name);
         return liste;
     }
     public static Movie[] getAllMovies() {
@@ -145,7 +143,7 @@ public class CMB {
         return movies;
     }
     /*
-        Fonctions Usuelles
+        Other functions
      */
 
     private static String filtreExtension(String mot) {
@@ -156,9 +154,9 @@ public class CMB {
     }
     /**
      *
-     * @param path le chemin du dossier dans lequel chercher
-     * @param fileName le fichier a trouver
-     * @return true si le fichier existe et false si il n'existe pas dans le dossier specifie
+     * @param path of folder where to search
+     * @param fileName of the file to find
+     * @return true if the file exist and false otherway
      */
     private static boolean fichierExiste(String path, String fileName)
     {
