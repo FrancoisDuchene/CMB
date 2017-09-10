@@ -1,26 +1,52 @@
+/*
+ This program is an database manager. This source file is the GUI part of it
+ Central Movie dataBase, CMB for short, current version is : 0.4
+ Copyright (C) 2017  Vinsifroid ~ François Duchêne
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 public class Movie {
     private int id;
     private String name;
     private String path;
     private String extension;
+    private String language;
+    private String subtitles;
+    //TODO add a nationality attribut, should change the bdd in consequence
     private int year;
     private int harddrive_id;
     private int[] genres_id;
 
-    public Movie(int id, String name, String path, String extension, int year, int harddrive_id, int[] genre_id) {
+    public Movie(int id, String name, String path, String extension, String language, String subtitles, int year, int harddrive_id, int[] genre_id) {
         this.id = id;
         this.name = name;
         this.path = path;
         this.extension = extension;
+        this.language = language;
+        this.subtitles = subtitles;
         this.year = year;
         this.harddrive_id = harddrive_id;
         this.genres_id = genre_id;
     }
-    public Movie(int id, String name, String path, String extension, int year, int harddrive_id) {
+    public Movie(int id, String name, String path, String extension, String language, String subtitles, int year, int harddrive_id) {
         this.id = id;
         this.name = name;
         this.path = path;
         this.extension = extension;
+        this.language = language;
+        this.subtitles = subtitles;
         this.year = year;
         this.harddrive_id = harddrive_id;
         genres_id = null;
@@ -80,5 +106,21 @@ public class Movie {
 
     public void setGenres_id(int[] genres_id) {
         this.genres_id = genres_id;
+    }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
+    }
+
+    public String getSubtitles() {
+        return subtitles;
+    }
+
+    public void setSubtitles(String subtitles) {
+        this.subtitles = subtitles;
     }
 }

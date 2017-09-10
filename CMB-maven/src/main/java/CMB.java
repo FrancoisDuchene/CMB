@@ -1,18 +1,6 @@
-import fichier.FichierR;
-import fichier.FichierW;
-
-import javax.swing.SwingUtilities;
-import java.io.File;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.sql.*;
-
 /*
  This program is an database manager. This source file is main part of it
- Central Movie Base, CMB for short, version is currently : 0.3
+ Central Movie dataBase, CMB for short, current version is : 0.4
  Copyright (C) 2017  Vinsifroid ~ François Duchêne
 
  This program is free software: you can redistribute it and/or modify
@@ -28,21 +16,22 @@ import java.sql.*;
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+import javax.swing.SwingUtilities;
+import java.io.File;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
 /**
- * Cette classe a les fonctions basiques de l'application
+ * This class have the basics functions of the app
  * @author vinsifroid
  * @since v0.1
  */
 public class CMB {
-    private static SqliteManager app;
     private static final boolean debug = false;
+    private static SqliteManager app;
     private CMB(){}
 
-    /*On n'essaie pas encore de faire une base donnée parfaite, on veut pour l'instant
-    seulement pouvoir y accéder via ce programme.
-    Pour ce qui est de la structure de la BD, on va utiliser un simple fichier texte.
-    EDIT : en train de migrer vers SQLite
-     */
     public static void main(String [] args)
     {
         System.out.println("Central Movie Database - " + dateActuelle());
@@ -53,13 +42,15 @@ public class CMB {
         final boolean DBExist = isDBExist();
         final String filename = cheminBD() + inter() + "Films.db";
         app = new SqliteManager(filename);
-        //test_init();
+        if(!DBExist) {
+            DBInit();
+        }
         SwingUtilities.invokeLater(CMB_gui::new);
     }
     private static boolean createFolder() {
         final String ch = cheminBD();
         File folder = new File(ch);
-        // On verifie que le dossier BaseDonnee existe
+        // We verify that BaseDonnee folder exist
         if(!folder.exists() && !folder.isDirectory())
         {
             if(!folder.mkdirs())
@@ -76,19 +67,33 @@ public class CMB {
         }
         return true;
     }
+
+    private static void DBInit() {
+        app.insertUpdateGenre(true,0,"N/A");
+        app.insertUpdateGenre(true,0,"Science-Fiction");
+        app.insertUpdateGenre(true,0,"Action");
+        app.insertUpdateGenre(true,0,"Fantastique");
+        app.insertUpdateGenre(true,0,"Horreur");
+        app.insertUpdateGenre(true,0,"Comedie");
+        app.insertUpdateGenre(true,0,"Policier");
+        app.insertUpdateGenre(true,0,"Thriller");
+        app.insertUpdateGenre(true,0,"Drame");
+        app.insertUpdateGenre(true,0,"Parodie");
+        app.insertUpdateHarddisk(true,0,"N/A");
+    }
     /*
-        Fonctions pour réaliser la liste de films
+        Functions to realize the movie list
      */
     public static void findFiles(File file1)
     {
-        //TODO Ajouter de nouveaux filtres pour ajouter automatiquement les genres, années,...
-        //TODO faire un système pour retenir des films qui existent déjà dans la db et avertir l'utilisateur
+        //TODO Add new filters to automatically add genre, years, ...
+        //TODO Make an alert when the user try to add movies that already exists in the db and warn him
         File[] list = file1.listFiles();
         if(list!=null)
         {
             for(File file2 : list)
             {
-                //TODO tester performance de stocker nomSuf au lieu de faire des appels à fonction dans chaque if
+                //TODO do performance test to see if stock nomSuf instead of do a call to each if is more efficient
                 final String nomSuf = file2.getName();
                 if (file2.isDirectory())
                 {
@@ -97,28 +102,28 @@ public class CMB {
                 else if (nomSuf.endsWith("avi")) {
                     final String path = file2.getAbsolutePath();
                     final String nom = filtreExtension(nomSuf);
-                    app.insertUpdateFilm(true,0,nom,path,".mov",0,null,1);
+                    app.insertUpdateFilm(true,0,nom,path,".avi","","",0,null,1);
                 }else if (nomSuf.endsWith("mp4")) {
                     final String path = file2.getPath();
                     final String nom = filtreExtension(nomSuf);
-                    app.insertUpdateFilm(true,0,nom,path,"mp4",0,null,1);
+                    app.insertUpdateFilm(true,0,nom,path,"mp4","","",0,null,1);
                 }else if (nomSuf.endsWith("mkv")) {
                     final String path = file2.getPath();
                     final String nom = filtreExtension(nomSuf);
-                    app.insertUpdateFilm(true,0,nom,path,"mkv",0,null,1);
+                    app.insertUpdateFilm(true,0,nom,path,"mkv","","",0,null,1);
                 }else if (nomSuf.endsWith("mov")) {
                     final String path = file2.getPath();
                     final String nom = filtreExtension(nomSuf);
-                    app.insertUpdateFilm(true,0,nom,path,"mov",0,null,1);
+                    app.insertUpdateFilm(true,0,nom,path,"mov","","",0,null,1);
                 }
             }
         }
     }
     /*
-        Fonctions interaction avec la bdd
+        Function to interact with the db
      */
-    public static List<String[]> searchMovie(String name) {
-        List<String[]> liste = app.searchMovie(name);
+    public static Movie[] searchMovie(String name) {
+        Movie[] liste = app.searchMovie(name);
         return liste;
     }
     public static Movie[] getAllMovies() {
@@ -128,14 +133,14 @@ public class CMB {
         for(String[] film : liste) {
             int[] genres = app.getIdAllGenresOfMovie(film[0]);
             Movie mov = new Movie(Integer.parseInt(film[0]),film[1],film[2],film[3],
-                    Integer.parseInt(film[4]),Integer.parseInt(film[5]),genres);
+                    film[4], film[5], Integer.parseInt(film[6]),Integer.parseInt(film[7]),genres);
             movies[i] = mov;
             i++;
         }
         return movies;
     }
     /*
-        Fonctions Usuelles
+        Other functions
      */
 
     private static String filtreExtension(String mot) {
@@ -146,9 +151,9 @@ public class CMB {
     }
     /**
      *
-     * @param path le chemin du dossier dans lequel chercher
-     * @param fileName le fichier a trouver
-     * @return true si le fichier existe et false si il n'existe pas dans le dossier specifie
+     * @param path of folder where to search
+     * @param fileName of the file to find
+     * @return true if the file exist and false otherway
      */
     private static boolean fichierExiste(String path, String fileName)
     {
@@ -185,31 +190,6 @@ public class CMB {
         return path;
     }
 
-    //Tests
-
-    private static void test_init() {
-        app.insertUpdateFilm(true,0,"Star wars","action/","avi",1977,new int[]{1,3},1);
-        app.insertUpdateFilm(true,0,"Star trek","sciencefiction/","avi",1977,new int[]{1},1);
-        app.insertUpdateFilm(true,0,"La soupe aux choux","/francais","avi",0,new int[]{2},1);
-        app.insertUpdateHarddisk(true,0,"Emtec");
-        app.insertUpdateGenre(true,0,"Science-fiction");
-        app.insertUpdateGenre(true,0,"Comédie");
-        app.insertUpdateGenre(true,0,"Fantastique");
-        if(isDebug()) {
-            test_select();
-            app.searchMovie("Star wars");
-        }
-    }
-
-    private static void test_select() {
-        System.out.println();
-        app.selectAllMovies();
-        System.out.println();
-        app.selectAllGenres();
-        System.out.println();
-        app.selectAllHarddives();
-        System.out.println();
-    }
 
     private static String inter()
     {

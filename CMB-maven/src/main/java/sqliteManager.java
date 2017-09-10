@@ -1,6 +1,6 @@
 /*
  This program is an database manager. This source file is main part of it
- Central Movie Base, CMB for short, version is currently : 0.3
+ Central Movie dataBase, CMB for short, current version is : 0.4
  Copyright (C) 2017  Vinsifroid ~ François Duchêne
 
  This program is free software: you can redistribute it and/or modify
@@ -17,16 +17,17 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import org.sqlite.SQLiteConfig;
-
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Created by vinsifroid on 29/08/17.
- */
 public class SqliteManager {
     private final String filename;
     private Connection conn;
@@ -44,11 +45,8 @@ public class SqliteManager {
         try {
             // Paramètres de la bdd
             final String url = "jdbc:sqlite:" + filename;
-            //Pour faire en sorte qu'il tienne compte des clés étrangères
-            /*SQLiteConfig config = new SQLiteConfig();
-            config.enforceForeignKeys(true);*/
             //On crée la connection à la bdd. Si elle n'existe pas elle est automatiquement crée
-            conn = DriverManager.getConnection(url/*,config.toProperties()*/);
+            conn = DriverManager.getConnection(url);
             DatabaseMetaData meta = conn.getMetaData();
             System.out.println("Le nom du driver est " + meta.getDriverName() + " v" + meta.getDatabaseMajorVersion() +
                     "." + meta.getDatabaseMinorVersion());
@@ -75,6 +73,8 @@ public class SqliteManager {
                 + "path text NOT NULL,\n"
                 + "extension text NOT NULL,\n"
                 + "year integer,\n"
+                + "language text,\n"
+                + "subtitles text,\n"
                 + "harddrive_id integer,\n"
                 + "FOREIGN KEY('harddrive_id') REFERENCES 'harddisk'('harddisk') ON DELETE NO ACTION ON UPDATE NO ACTION\n"
                 + ");";
@@ -110,12 +110,13 @@ public class SqliteManager {
 
     public String[][] selectAllMovies() {
         final String sql = "SELECT film.film_id, film.name, film.path, film.extension, " +
-                "film.year, genre.nom, harddisk.hd_nom FROM filmXgenre " +
+                "film.year, film.language, film.subtitles, genre.nom, harddisk.hd_nom FROM filmXgenre " +
                 "INNER JOIN film ON filmXgenre.film_id = film.film_id " +
                 "INNER JOIN genre ON filmXgenre.genre_id = genre.genre_id " +
-                "INNER JOIN harddisk ON harddisk.harddisk_id = film.harddrive_id ";
-        return stmtRS(sql,new String[]{"film_id","name","path","extension",
-                        "year","hd_nom","nom"},new byte[]{1,2,2,2,1,2,2});
+                "INNER JOIN harddisk ON harddisk.harddisk_id = film.harddrive_id "; //+
+                //"WHERE film.film_id < 100";
+        return stmtRS(sql,new String[]{"film_id","name","path","extension", "language", "subtitles",
+                        "year","hd_nom","nom"},new byte[]{1,2,2,2,2,2,1,2,2});
     }
     public String[][] selectAllGenres() {
         final String sql = "SELECT genre_id, nom FROM genre";
@@ -141,7 +142,7 @@ public class SqliteManager {
         try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             // on parcours l'ensemble des résultats
-            if(CMB.isDebug()){
+            if(CMB.isDebug()) {
                 printRes_Debug(rs, args, meth);
                 return null;
             }
@@ -180,25 +181,28 @@ public class SqliteManager {
     //TODO faire tests performances pour voir si utiliser des List<String[]> est plus avantageux qu'un String[]
     /**
      *
-     * @param nom
-     * @return la liste des attributs du film ou NULL si il y a eu une exception
+     * @param nom the name of the movie to search
+     * @return the list of attributs of the movie or null if there was an error
      */
-    public List<String[]> searchMovie(String nom) {
-        final String sql = "SELECT name, path, extension, year, harddrive_id FROM film WHERE name = ? ";
+    public Movie[] searchMovie(String nom) {
+        final String sql = "SELECT film_id, name, path, extension, language, subtitles, year, harddrive_id FROM film WHERE name LIKE ? ";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1,nom);
+            pstmt.setString(1, "%" + nom + "%");
             ResultSet rs = pstmt.executeQuery();
             if(CMB.isDebug()) {
-                printRes_Debug(rs,new String[]{"name","path","extension","year","harddrive_id"},new byte[]{2,2,2,1,1});
+                printRes_Debug(rs,new String[]{"film_id","name","path","extension","language","subtitles","year","harddrive_id"},new byte[]{1,2,2,2,2,2,1,1});
             }
-            List<String[]> liste = new ArrayList<>();
+            List<Movie> liste = new ArrayList<>();
             while(rs.next()) {
-                final String[] mov =  new String[]{rs.getString("name"),rs.getString("path"),rs.getString("extension"),
-                        Integer.toString(rs.getInt("year")),Integer.toString(rs.getInt("harddrive_id"))};
+                final Movie mov = new Movie(rs.getInt("film_id"),rs.getString("name"),rs.getString("path"),rs.getString("extension"),
+                        rs.getString("language"),rs.getString("subtitles"),rs.getInt("year"),rs.getInt("harddrive_id"));
                 liste.add(mov);
             }
             pstmt.close();
-            return liste;
+            if(liste.size() == 0) {
+                return null;
+            }
+            return liste.toArray(new Movie[liste.size()]);
         } catch(SQLException e) {
             e.printStackTrace();
             return null;
@@ -285,16 +289,16 @@ public class SqliteManager {
      * @param genre_id
      * @param harddrive_id
      */
-    public boolean insertUpdateFilm(boolean mode,int id, String name, String path, String extension,
-                                 int year, int[] genre_id, int harddrive_id) {
+    public boolean insertUpdateFilm(boolean mode,int id, String name, String path, String extension, String language,
+                                 String subtitles, int year, int[] genre_id, int harddrive_id) {
         final String sql, sql2 = "INSERT INTO filmXgenre(film_id, genre_id) VALUES((" +
                 "SELECT film_id FROM film WHERE name = ?)," +
                 "?)";
         if(mode) {
-            sql = "INSERT INTO film(name,path,extension,year,harddrive_id) VALUES(?,?,?,?,?)";
+            sql = "INSERT INTO film(name,path,extension,language, subtitles, year,harddrive_id) VALUES(?,?,?,?,?,?,?)";
         }else{
-            sql = "UPDATE film SET name = ? , path = ? , extension = ? ," +
-                    "year = ? , genre_id = ? , harddrive_id = ? " +
+            sql = "UPDATE film SET name = ? , path = ? , extension = ? , language = ?," +
+                    "subtitles = ?, year = ? , genre_id = ? , harddrive_id = ? " +
                     "WHERE film_id = ?";
         }
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -302,10 +306,12 @@ public class SqliteManager {
             pstmt.setString(1, name);
             pstmt.setString(2, path);
             pstmt.setString(3,extension);
-            pstmt.setInt(4, year);
-            pstmt.setInt(5, harddrive_id);
+            pstmt.setString(4,language);
+            pstmt.setString(5,subtitles);
+            pstmt.setInt(6, year);
+            pstmt.setInt(7, harddrive_id);
             if(!mode)
-                pstmt.setInt(6,id);
+                pstmt.setInt(8,id);
             pstmt.executeUpdate();
             //On modifie la table filmXgenre
             if(genre_id != null) {
