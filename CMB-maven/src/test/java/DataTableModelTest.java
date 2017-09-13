@@ -21,14 +21,14 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class dataTableModelTest {
-    private dataTableModel model;
+public class DataTableModelTest {
+    private DataTableModel model;
     @Before
     public void setUp() throws Exception {
         Movie[] movies = new Movie[]{new Movie(1,"La grande Vadrouille","/Videos/French","avi", "language", "subtitles", 1966,13,new int[]{3,5}),
                 new Movie(2,"Star Wars","/Videos/action","mov", "language", "subtitles", 1977,1,null),
                 new Movie(3,"Avatar","/Videos/action","mp4", "language", "subtitles", 2007,1,new int[]{1,4,6})};
-        model = new dataTableModel(movies);
+        model = new DataTableModel(movies);
     }
 
     @Test

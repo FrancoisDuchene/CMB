@@ -37,15 +37,6 @@ import java.io.File;
  * @since v0.1
  */
 final class CMB_gui extends JFrame{
-    // Barre de menu
-    private JMenuBar menuBar;
-    private JMenu Fichier;
-    private JMenu aPropos;
-
-    private JMenuItem majBD;
-    private JMenuItem rechMot;
-    private JMenuItem quit;
-    private JMenuItem APropo;
 
     CMB_gui()
     {
@@ -67,27 +58,30 @@ final class CMB_gui extends JFrame{
         gl.setAutoCreateContainerGaps(true);
         gl.setAutoCreateGaps(true);
         //On crée la table principale qui contiendra les données
-        dataTableModel model = new dataTableModel(CMB.getAllMovies());
+        DataTableModel model = new DataTableModel(CMB.getAllMovies());
         JTable table = new JTable(model);
-        table.setDefaultRenderer(Integer.class, new integerCellRenderer());
+        table.setDefaultRenderer(Integer.class, new IntegerCellRenderer());
         //The scrollPane for table
         //TODO vérifier si c'est bien afficher sur le contentPane
         JScrollPane spane = new JScrollPane(table);
         gl.setHorizontalGroup(gl.createParallelGroup().addComponent(spane));
         gl.setVerticalGroup(gl.createSequentialGroup().addComponent(spane));
         // Barre de menu
-        menuBar = new JMenuBar();
-        Fichier = new JMenu("Fichier");
-        aPropos = new JMenu("A propos");
+        JMenuBar menuBar = new JMenuBar();
+        JMenu fichier = new JMenu("Fichier");
+        JMenu view = new JMenu("Affichage");
+        JMenu aPropos = new JMenu("A propos");
 
-        quit = new JMenuItem("Quitter");
+        //Items du menu
+        //FICHIER
+        JMenuItem quit = new JMenuItem("Quitter");
         quit.addActionListener(event -> {
             CMB.getApp().closeDB();
             System.exit(0);
         });
-        majBD = new JMenuItem("Mise à jour");
+        JMenuItem majBD = new JMenuItem("Mise à jour");
         majBD.addActionListener(event -> majBD());
-        rechMot = new JMenuItem("Rechercher");
+        JMenuItem rechMot = new JMenuItem("Rechercher");
         rechMot.addActionListener(actionEvent -> {
             String rep = JOptionPane.showInputDialog(null, "Introduisez un mot à chercher", "Requête",
                     JOptionPane.QUESTION_MESSAGE);
@@ -103,20 +97,27 @@ final class CMB_gui extends JFrame{
                 }
             }
         });
-        APropo = new JMenuItem("A propos");
+        //VIEW
+        JMenuItem movieView = new JMenuItem("Vue films");
+        movieView.addActionListener(event -> {
+
+        });
+        JMenuItem genreView = new JMenuItem("Vue genres");
+        //A PROPOS
+        JMenuItem about = new JMenuItem("A propos");
         //TODO enregistrer certaines propriétés (version, date de build) dans un fichier texte géré par des properties
-        APropo.addActionListener(event -> JOptionPane.showMessageDialog(null, "Version 0.4.1 : Build du " + CMB.dateActuelle() + "\nDéveloppeur : vinsifroid",
+        about.addActionListener(event -> JOptionPane.showMessageDialog(null, "Version 0.4.2 : Build du " + CMB.dateActuelle() + "\nDéveloppeur : vinsifroid",
                 "A propos", JOptionPane.INFORMATION_MESSAGE));
 
         //Quand on lance l'app, elle nous affiche directement tous les films
         final Movie[] films = CMB.getAllMovies();
         addAllMoviesToModel(model,films);
-        // On ajoute les coomposants
-        Fichier.add(majBD);
-        Fichier.add(rechMot);
-        Fichier.add(quit);
-        aPropos.add(APropo);
-        menuBar.add(Fichier);
+        // On ajoute les composants
+        fichier.add(majBD);
+        fichier.add(rechMot);
+        fichier.add(quit);
+        aPropos.add(about);
+        menuBar.add(fichier);
         menuBar.add(aPropos);
         this.setJMenuBar(menuBar);
         this.getContentPane().add(princ);
@@ -139,7 +140,7 @@ final class CMB_gui extends JFrame{
         System.out.println("Fait le " + CMB.dateActuelle() + " en " + (endTime - startTime) + " ms");
     }
 
-    private void addAllMoviesToModel(dataTableModel model, Movie[] movies) {
+    private void addAllMoviesToModel(DataTableModel model, Movie[] movies) {
         //TODO Do a perf test to see if this is more efficient than do a 'addAll' method in the model
         for(Movie mov : movies) {
             model.addMovie(mov);

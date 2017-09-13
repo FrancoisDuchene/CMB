@@ -1,12 +1,6 @@
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableCellRenderer;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 /*
  This program is an database manager. This source file is the GUI part of it
- Central Movie dataBase, CMB for short, current version is : 0.3
+ Central Movie dataBase, CMB for short, current version is : 0.4
  Copyright (C) 2017  Vinsifroid ~ François Duchêne
 
  This program is free software: you can redistribute it and/or modify
@@ -22,11 +16,18 @@ import java.util.List;
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-public class dataTableModel extends AbstractTableModel{
+
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+public class DataTableModel extends AbstractTableModel{
     private final List<Movie> data = new ArrayList<Movie>();
     private final String[] header = {"ID", "Nom", "Chemin","Extension","Langue","Sous-titres","Année","ID harddrive","ID genre(s)"};
 
-    public dataTableModel(Movie[] data) {
+    public DataTableModel(Movie[] data) {
         super();
         Collections.addAll(this.data, data);
     }
