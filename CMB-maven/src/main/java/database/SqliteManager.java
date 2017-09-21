@@ -17,6 +17,10 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+package database;
+
+import main.CMB;
+
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;

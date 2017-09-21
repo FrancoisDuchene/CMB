@@ -17,6 +17,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import database.Movie;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.Assert;

@@ -17,6 +17,8 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+package database;
+
 public class Movie {
     private int id;
     private String name;

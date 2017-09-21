@@ -26,19 +26,16 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 /**
- * Une classe qui gère les flux d'écriture d'un fichier
+ * This class manage write streams of a text file
  * @author vinsifroid
  * @since v0.1
  */
-@SuppressWarnings("serial")
-public class FichierW
-{
+public class FichierW {
 	private final String filename;
 	private PrintWriter PW;
 	private boolean ouvert;
 
-	public FichierW(String filename)
-	{
+	public FichierW(String filename) {
 		File f = new File(filename);
 		if(!f.exists() && !f.isFile())
 		{
@@ -54,31 +51,18 @@ public class FichierW
 		ouvert = false;
 	}
 
-    public static boolean creerNouveauFichier(String path)
-    {
-        File bd = new File(path);
-        try {
-			return bd.createNewFile();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
 	/**
 	 *
 	 * @param append si c'est true, le flux se mettra à la fin du fichier. Sinon le fichier est écrasé par le nouveau flux.
 	 */
-	public void ouvrirFuxWriter(boolean append)
-	{
-		if(ouvert)
-		{
+	public void ouvrirFuxWriter(boolean append)	{
+		if(ouvert) {
 			System.err.println("Error - stream already open");
 		}
-		else{
-			try{
+		else {
+			try {
 				PW = new PrintWriter(new FileWriter(filename, append));
-			}catch(IOException e){
+			}catch(IOException e) {
 				e.printStackTrace();
 				System.exit(-1);
 			}
@@ -86,13 +70,11 @@ public class FichierW
 		}
 	}
 
-	public void fermerFluxWriter()
-	{
-		if(ouvert)
-		{
+	public void fermerFluxWriter() {
+		if(ouvert) {
 			PW.close();
 			ouvert = false;
-		}else{
+		}else {
 			System.err.println("No Stream are open");
 		}
 	}
@@ -100,25 +82,21 @@ public class FichierW
 	/**
 	 * @param tmp is the integer to write in the next line of the file
 	 */
-	public void ecrireInt(int tmp)
-	{
-		String chaine = String.valueOf(tmp);
+	public void ecrireInt(int tmp) {
+		final String chaine = Integer.toString(tmp);
 		PW.println(chaine);	
 	}
 	/**
 	 * @param tmp is the double to write in the next line of the file
 	 */
-	public void ecrireDouble(double tmp)
-	{		
-		String chaine = String.valueOf(tmp);
+	public void ecrireDouble(double tmp) {
+		final String chaine = Double.toString(tmp);
 		PW.println(chaine);
 	}
 	/**
 	 * @param tmp is the String to write in the next line of the file. tmp != null
 	 */
-	public void ecrireString(String tmp)
-	{
-		assert(tmp != null) : "Il s'agit d'un String vide !";
+	public void ecrireString(String tmp) {
 		PW.println(tmp);
 	}
 	
@@ -138,8 +116,7 @@ public class FichierW
 	/**
 	 * Force the System to write with a flush() statement
 	 */
-	public void forcerEcriture()
-	{
+	public void forcerEcriture() {
 		PW.flush();
 	}
 
@@ -148,5 +125,15 @@ public class FichierW
 	 */
 	public void introduireEspace() {		
 		PW.println("");	
+	}
+
+	public static boolean createNewFile(String path) {
+		File bd = new File(path);
+		try {
+			return bd.createNewFile();
+		} catch (IOException e) {
+			e.printStackTrace();
+			return false;
+		}
 	}
 }

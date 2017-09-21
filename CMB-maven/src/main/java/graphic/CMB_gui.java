@@ -17,6 +17,11 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+package graphic;
+
+import database.Movie;
+import main.CMB;
+
 import javax.swing.GroupLayout;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -36,9 +41,9 @@ import java.io.File;
  * @author vinsifroid
  * @since v0.1
  */
-final class CMB_gui extends JFrame{
+final public class CMB_gui extends JFrame{
 
-    CMB_gui()
+    public CMB_gui()
     {
         // Caractéristiques de base
         super();
@@ -100,9 +105,12 @@ final class CMB_gui extends JFrame{
         //VIEW
         JMenuItem movieView = new JMenuItem("Vue films");
         movieView.addActionListener(event -> {
-
+            //TODO
         });
         JMenuItem genreView = new JMenuItem("Vue genres");
+        genreView.addActionListener(actionEvent -> {
+            //TODO
+        });
         //A PROPOS
         JMenuItem about = new JMenuItem("A propos");
         //TODO enregistrer certaines propriétés (version, date de build) dans un fichier texte géré par des properties
@@ -116,8 +124,11 @@ final class CMB_gui extends JFrame{
         fichier.add(majBD);
         fichier.add(rechMot);
         fichier.add(quit);
+        view.add(movieView);
+        view.add(genreView);
         aPropos.add(about);
         menuBar.add(fichier);
+        menuBar.add(view);
         menuBar.add(aPropos);
         this.setJMenuBar(menuBar);
         this.getContentPane().add(princ);
@@ -137,7 +148,7 @@ final class CMB_gui extends JFrame{
             CMB.findFiles(selFile);
         }
         final long endTime = System.currentTimeMillis();
-        System.out.println("Fait le " + CMB.dateActuelle() + " en " + (endTime - startTime) + " ms");
+        System.out.println(/*"Fait le " + CMB.dateActuelle() + " en " + */(endTime - startTime)/* + " ms"*/);
     }
 
     private void addAllMoviesToModel(DataTableModel model, Movie[] movies) {

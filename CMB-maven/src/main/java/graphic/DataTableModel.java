@@ -17,22 +17,22 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+package graphic;
+
+import database.Movie;
+
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class GenreTableModel extends AbstractTableModel{
+public class DataTableModel extends AbstractTableModel{
+    private final List<Movie> data = new ArrayList<Movie>();
+    private final String[] header = {"ID", "Nom", "Chemin","Extension","Langue","Sous-titres","Année","ID harddrive","ID genre(s)"};
 
-    private final List<Integer> ids = new ArrayList<>();
-    private final List<String> data = new ArrayList<>();
-    private final String[] header = {"ID","Genre"};
-
-    public GenreTableModel(int[] ids, String[] data) {
+    public DataTableModel(Movie[] data) {
         super();
-        Integer[] idsInt = Arrays.stream(ids).boxed().toArray(Integer[]::new);
-        Collections.addAll(this.ids, idsInt);
         Collections.addAll(this.data, data);
     }
 
@@ -55,10 +55,33 @@ public class GenreTableModel extends AbstractTableModel{
     public Object getValueAt(int rowIndex, int columnIndex) {
         switch (columnIndex) {
             case 0:
-                return ids.get(rowIndex);
+                return data.get(rowIndex).getId();
             case 1:
-                return data.get(rowIndex);
-            default:
+                return data.get(rowIndex).getName();
+            case 2:
+                return data.get(rowIndex).getPath();
+            case 3:
+                return data.get(rowIndex).getExtension();
+            case 4:
+                return data.get(rowIndex).getLanguage();
+            case 5:
+                return data.get(rowIndex).getSubtitles();
+            case 6:
+                return data.get(rowIndex).getYear();
+            case 7:
+                return data.get(rowIndex).getHarddrive_id();
+            case 8:
+                if(data.get(rowIndex).getGenres_id() != null) {
+                    String genres = "";
+                    final int genreLength = data.get(rowIndex).getGenres_id().length;
+                    final int[] genres_id = data.get(rowIndex).getGenres_id();
+                    for(int k=0;k<genreLength;k++) {
+                        genres += Integer.toString(genres_id[k]) + " ";
+                    }
+                    return genres;
+                }
+                return null;
+            default: //Should never happen
                 return null;
         }
     }
@@ -66,19 +89,23 @@ public class GenreTableModel extends AbstractTableModel{
     @Override
     public Class getColumnClass(int columnIndex) {
         switch(columnIndex) {
-            case 0:
+            case 1:
+                return Integer.class;
+            case 6:
+                return Integer.class;
+            case 7:
                 return Integer.class;
             default:
                 return String.class;
         }
     }
 
-    public void addGenre(String genre) {
-        data.add(genre);
+    public void addMovie(Movie mov) {
+        data.add(mov);
         this.fireTableRowsInserted(data.size() -1, data.size() -1);
     }
 
-    public void removeGenre(int rowIndex) {
+    public void removeMovie(int rowIndex) {
         data.remove(rowIndex);
         this.fireTableRowsDeleted(rowIndex,rowIndex);
     }
@@ -90,3 +117,4 @@ public class GenreTableModel extends AbstractTableModel{
         }
     }
 }
+

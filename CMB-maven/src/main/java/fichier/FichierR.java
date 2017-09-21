@@ -28,13 +28,11 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * Une classe qui gère les flux de lecture d'un fichier
- @author vinsifroid
- @since v0.1
+ * This class manage read-stream of a text file
+ * @author vinsifroid
+ * @since v0.1
  */
-@SuppressWarnings("serial")
-public class FichierR
-{
+public class FichierR {
 	/**
 	 * Le nom du fichier ainsi que son chemin (les 2 en même temps)
 	 */
@@ -45,11 +43,9 @@ public class FichierR
 	 */
 	private boolean ouvert;
 
-	public FichierR(String filename)
-	{
+	public FichierR(String filename) {
 		File f = new File(filename);
-		if(!f.exists() && !f.isFile())
-		{
+		if(!f.exists() && !f.isFile()) {
 			try {
 				throw new FileNotFoundException(filename + " - wrong filename or path");
 			} catch (FileNotFoundException e) {
@@ -63,34 +59,30 @@ public class FichierR
 
 	// Gestionnaires de flux
 
-	public void ouvrirFluxReader()
-	{
-		if(ouvert)
-		{
+	public void ouvrirFluxReader() {
+		if(ouvert) {
 			System.err.println("Error - stream already open");
 		}
 		else{
-			try{
+			try {
 				BR = new BufferedReader(new FileReader(filename));
-			}catch(FileNotFoundException e){
+			}catch(FileNotFoundException e) {
 				e.printStackTrace();
 				System.exit(-1);
 			}
 			ouvert = true;
 		}
 	}
-	public void fermerFluxReader()
-	{
-		if(ouvert)
-		{
-			try{
+	public void fermerFluxReader() {
+		if(ouvert) {
+			try {
 				BR.close();
-			}catch(IOException e){
+			}catch(IOException e) {
 				e.printStackTrace();
 				System.exit(-1);
 			}
 			ouvert = false;
-		}else{
+		}else {
 			System.err.println("No Stream are open");
 		}
 	}
@@ -101,15 +93,13 @@ public class FichierR
 	public String lire() {
 		File f = new File(filename);
 		try {
-			if(f.canRead() && BR.ready())
-			{
+			if(f.canRead() && BR.ready()) {
 				return BR.readLine();
 			}
 		}
 		catch(IOException e) {
 			System.err.println(e.getMessage());
 			System.exit(-1);
-			return "Error IOException";
 		}
 		return "Error don't have the right to read the file";
 	}
@@ -120,8 +110,7 @@ public class FichierR
 	public String lire(int n) {
 		File f = new File(filename);
 		try {
-			if(f.canRead() && BR.ready())
-			{
+			if(f.canRead() && BR.ready()) {
 				String chaine = "";
 				for(int i =0; i<n;i++) {
 					chaine = BR.readLine();
@@ -183,7 +172,7 @@ public class FichierR
 	 */
 	public long longueurFichier() {
         InputStream is = null;
-        try{
+        try {
 			is = new BufferedInputStream(new FileInputStream(filename));
 			byte[] c = new byte[1024];
 			long count = 0;
@@ -205,14 +194,13 @@ public class FichierR
 		}
 		finally {
             try{
-                is.close();
-            }catch(IOException e2){
+				if (is != null) {
+					is.close();
+				}
+			}catch(IOException | NullPointerException e2) {
                 e2.printStackTrace();
                 System.exit(-1);
-            }catch(NullPointerException e3){
-                e3.printStackTrace();
-                System.exit(-1);
-			}
+            }
 		}
 		return 0;
 	}

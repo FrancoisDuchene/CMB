@@ -17,6 +17,12 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+package main;
+
+import database.Movie;
+import database.SqliteManager;
+import graphic.CMB_gui;
+
 import javax.swing.SwingUtilities;
 import java.io.File;
 import java.time.LocalDate;

@@ -17,6 +17,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import graphic.GenreTableModel;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
