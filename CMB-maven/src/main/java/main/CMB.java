@@ -28,6 +28,8 @@ import java.io.File;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
+import static main.Analyse.filtreExtension;
+
 /**
  * This class have the basics functions of the app
  * @author vinsifroid
@@ -68,10 +70,7 @@ public class CMB {
     private static boolean isDBExist() {
         final String ch = cheminBD();
         File bdd = new File(ch + inter() + "Films.db");
-        if(!bdd.exists()) {
-            return false;
-        }
-        return true;
+        return bdd.exists();
     }
 
     private static void DBInit() {
@@ -95,14 +94,11 @@ public class CMB {
         //TODO Add new filters to automatically add genre, years, ...
         //TODO Make an alert when the user try to add movies that already exists in the db and warn him
         File[] list = file1.listFiles();
-        if(list!=null)
-        {
-            for(File file2 : list)
-            {
+        if(list!=null) {
+            for(File file2 : list) {
                 //TODO do performance test to see if stock nomSuf instead of do a call to each if is more efficient
                 final String nomSuf = file2.getName();
-                if (file2.isDirectory())
-                {
+                if (file2.isDirectory()) {
                     findFiles(file2);
                 }
                 else if (nomSuf.endsWith("avi")) {
@@ -145,16 +141,14 @@ public class CMB {
         }
         return movies;
     }
+    public static String[][] getAllGenres() {
+        final String[][] genres = app.selectAllGenres();
+        return genres;
+    }
     /*
         Other functions
      */
 
-    private static String filtreExtension(String mot) {
-        final int indice = mot.lastIndexOf(".");
-        if(indice != -1)
-            return mot.substring(0, indice);
-        return mot;
-    }
     /**
      *
      * @param path of folder where to search

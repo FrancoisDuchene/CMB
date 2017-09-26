@@ -28,9 +28,12 @@ public class GenreTableModelTest {
     private GenreTableModel model;
     @Before
     public void setUp() throws Exception {
-        String[] genres = new String[]{"Action","Comedie","Science-fiction","Fantastique"};
-        int[] ids = new int[]{0,1,2,3,4};
-        model = new GenreTableModel(ids, genres);
+        String[][] data = new String[][] { {"0","Action"},
+                {"1","Comedie"},
+                {"2","Science-fiction"},
+                {"3","Fantastique"}
+        };
+        model = new GenreTableModel(data);
     }
 
     @Test
@@ -82,5 +85,4 @@ public class GenreTableModelTest {
     @Test
     public void clearAll() throws Exception {
     }
-
 }

@@ -21,7 +21,6 @@ package graphic;
 
 import javax.swing.table.AbstractTableModel;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -31,11 +30,26 @@ public class GenreTableModel extends AbstractTableModel{
     private final List<String> data = new ArrayList<>();
     private final String[] header = {"ID","Genre"};
 
-    public GenreTableModel(int[] ids, String[] data) {
+    public GenreTableModel(String[][] data) {
         super();
-        Integer[] idsInt = Arrays.stream(ids).boxed().toArray(Integer[]::new);
-        Collections.addAll(this.ids, idsInt);
-        Collections.addAll(this.data, data);
+        String [] names = new String[data.length];
+        Integer [] ids = new Integer[data.length];
+        int count = 0;
+        for(String [] genre : data) {
+            for(byte i=0;i<genre.length;i++) {
+                switch (i) {
+                    case 0:
+                        ids[count] = Integer.valueOf(genre[0]);
+                        break;
+                    case 1:
+                        names[count] = genre[1];
+                        break;
+                }
+            }
+            count++;
+        }
+        Collections.addAll(this.ids, ids);
+        Collections.addAll(this.data, names);
     }
 
     @Override

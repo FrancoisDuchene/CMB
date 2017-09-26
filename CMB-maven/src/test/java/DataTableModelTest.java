@@ -89,5 +89,4 @@ public class DataTableModelTest {
         model.clearAll();
         Assert.assertEquals(0,model.getRowCount());
     }
-
 }

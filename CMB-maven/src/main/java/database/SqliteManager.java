@@ -113,6 +113,7 @@ public class SqliteManager {
     //SELECT
 
     public String[][] selectAllMovies() {
+        //TODO fix the request
         final String sql = "SELECT film.film_id, film.name, film.path, film.extension, " +
                 "film.year, film.language, film.subtitles, genre.nom, harddisk.hd_nom FROM filmXgenre " +
                 "INNER JOIN film ON filmXgenre.film_id = film.film_id " +
@@ -150,9 +151,9 @@ public class SqliteManager {
                 printRes_Debug(rs, args, meth);
                 return null;
             }
-            List<String> film = new ArrayList<>();
             List<List<String>> liste = new ArrayList<>();
             while(rs.next()) {
+                List<String> film = new ArrayList<>();
                 for(int i=0;i<args.length;i++) {
                     switch (meth[i]) {
                         case 1:
@@ -167,7 +168,6 @@ public class SqliteManager {
                     }
                 }
                 liste.add(film);
-                film.clear();
             }
             stmt.close();
             String[][] array = new String[liste.size()][];

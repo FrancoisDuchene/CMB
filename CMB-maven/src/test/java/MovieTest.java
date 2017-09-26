@@ -119,5 +119,4 @@ public class MovieTest {
         final int[] returnVal = mov.getGenres_id();
         Assert.assertArrayEquals(new int[]{8,10,7},returnVal);
     }
-
 }

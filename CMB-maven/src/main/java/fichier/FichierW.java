@@ -37,8 +37,7 @@ public class FichierW {
 
 	public FichierW(String filename) {
 		File f = new File(filename);
-		if(!f.exists() && !f.isFile())
-		{
+		if(!f.exists() && !f.isFile()) {
 			try {
 				throw new FileNotFoundException(filename + " - wrong filename or path");
 			} catch (FileNotFoundException e) {

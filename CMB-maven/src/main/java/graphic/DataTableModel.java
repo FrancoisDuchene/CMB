@@ -22,13 +22,12 @@ package graphic;
 import database.Movie;
 
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableCellRenderer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class DataTableModel extends AbstractTableModel{
-    private final List<Movie> data = new ArrayList<Movie>();
+    private final List<Movie> data = new ArrayList<>();
     private final String[] header = {"ID", "Nom", "Chemin","Extension","Langue","Sous-titres","Année","ID harddrive","ID genre(s)"};
 
     public DataTableModel(Movie[] data) {
@@ -72,13 +71,13 @@ public class DataTableModel extends AbstractTableModel{
                 return data.get(rowIndex).getHarddrive_id();
             case 8:
                 if(data.get(rowIndex).getGenres_id() != null) {
-                    String genres = "";
+                    StringBuilder genres = new StringBuilder();
                     final int genreLength = data.get(rowIndex).getGenres_id().length;
                     final int[] genres_id = data.get(rowIndex).getGenres_id();
                     for(int k=0;k<genreLength;k++) {
-                        genres += Integer.toString(genres_id[k]) + " ";
+                        genres.append(Integer.toString(genres_id[k])).append(" ");
                     }
-                    return genres;
+                    return genres.toString();
                 }
                 return null;
             default: //Should never happen
@@ -117,4 +116,3 @@ public class DataTableModel extends AbstractTableModel{
         }
     }
 }
-

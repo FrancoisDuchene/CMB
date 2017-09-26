@@ -22,7 +22,6 @@ package graphic;
 import database.Movie;
 import main.CMB;
 
-import javax.swing.GroupLayout;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -32,8 +31,14 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.KeyStroke;
+import javax.swing.table.AbstractTableModel;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.io.File;
 
 /**
@@ -53,40 +58,54 @@ final public class CMB_gui extends JFrame{
         this.setResizable(true);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        // Caractéristiques
+        //movie data
+        DataTableModel dataModel = new DataTableModel(CMB.getAllMovies());
+        GenreTableModel genreModel = new GenreTableModel(CMB.getAllGenres());
 
-        // Panneaux
         // Panneau principal
         JPanel princ = new JPanel();
-        GroupLayout gl = new GroupLayout(princ);
-        princ.setLayout(gl);
-        gl.setAutoCreateContainerGaps(true);
-        gl.setAutoCreateGaps(true);
-        //On crée la table principale qui contiendra les données
-        DataTableModel model = new DataTableModel(CMB.getAllMovies());
-        JTable table = new JTable(model);
-        table.setDefaultRenderer(Integer.class, new IntegerCellRenderer());
-        //The scrollPane for table
-        //TODO vérifier si c'est bien afficher sur le contentPane
-        JScrollPane spane = new JScrollPane(table);
-        gl.setHorizontalGroup(gl.createParallelGroup().addComponent(spane));
-        gl.setVerticalGroup(gl.createSequentialGroup().addComponent(spane));
-        // Barre de menu
-        JMenuBar menuBar = new JMenuBar();
+        CardLayout pile = new CardLayout();
+        princ.setLayout(pile);
+
+        //On crée le tableau principal qui contiendra les données
+        //TODO use a cardLayout to display or movies, or genres or harddisks
+        JPanel dataPane = buildTablePanel(dataModel);
+        JPanel genrePane = buildTablePanel(genreModel);
+        princ.add(dataPane,"dataPane");
+        princ.add(genrePane,"genrePane");
+
+        //We call method buildMenuBar to set the menu
+        this.setJMenuBar(buildMenuBar(dataModel,princ,pile));
+
+        //We show the first element : the movie panel
+        pile.first(princ);
+        this.getContentPane().add(princ);
+        this.setVisible(true);
+    }
+
+    private JMenuBar buildMenuBar(DataTableModel dataModel, JPanel princ, CardLayout pile) {
+        JMenuBar jm = new JMenuBar();
         JMenu fichier = new JMenu("Fichier");
+        fichier.setMnemonic('F');
         JMenu view = new JMenu("Affichage");
+        view.setMnemonic('A');
         JMenu aPropos = new JMenu("A propos");
 
         //Items du menu
         //FICHIER
         JMenuItem quit = new JMenuItem("Quitter");
+        quit.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.CTRL_MASK));
         quit.addActionListener(event -> {
             CMB.getApp().closeDB();
             System.exit(0);
         });
         JMenuItem majBD = new JMenuItem("Mise à jour");
+        majBD.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_M, InputEvent.CTRL_MASK));
+        majBD.setToolTipText("Mise à jour de la base de donnée");
         majBD.addActionListener(event -> majBD());
         JMenuItem rechMot = new JMenuItem("Rechercher");
+        rechMot.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_MASK));
+        rechMot.setToolTipText("Rechercher un film dans la base de donnée");
         rechMot.addActionListener(actionEvent -> {
             String rep = JOptionPane.showInputDialog(null, "Introduisez un mot à chercher", "Requête",
                     JOptionPane.QUESTION_MESSAGE);
@@ -94,8 +113,9 @@ final public class CMB_gui extends JFrame{
                 Movie[] movies = CMB.searchMovie(rep);
                 if(movies != null) {
                     if(movies[0] != null) {
-                        model.clearAll();
-                        addAllMoviesToModel(model,movies);
+                        dataModel.clearAll();
+                        addAllMoviesToModel(dataModel,movies);
+                        pile.show(princ,"dataPane");
                     }
                 }else {
                     JOptionPane.showMessageDialog(null,"Aucun résultat trouvé !","Résultat",JOptionPane.INFORMATION_MESSAGE);
@@ -105,36 +125,41 @@ final public class CMB_gui extends JFrame{
         //VIEW
         JMenuItem movieView = new JMenuItem("Vue films");
         movieView.addActionListener(event -> {
-            //TODO
+            dataModel.clearAll();
+            pile.show(princ,"dataPane");
         });
         JMenuItem genreView = new JMenuItem("Vue genres");
-        genreView.addActionListener(actionEvent -> {
-            //TODO
-        });
+        genreView.addActionListener(actionEvent -> pile.show(princ,"genrePane"));
         //A PROPOS
         JMenuItem about = new JMenuItem("A propos");
         //TODO enregistrer certaines propriétés (version, date de build) dans un fichier texte géré par des properties
-        about.addActionListener(event -> JOptionPane.showMessageDialog(null, "Version 0.4.2 : Build du " + CMB.dateActuelle() + "\nDéveloppeur : vinsifroid",
+        about.addActionListener(event -> JOptionPane.showMessageDialog(null, "Version 0.4.5 : Build du " + CMB.dateActuelle() + "\nDéveloppeur : vinsifroid",
                 "A propos", JOptionPane.INFORMATION_MESSAGE));
 
-        //Quand on lance l'app, elle nous affiche directement tous les films
-        final Movie[] films = CMB.getAllMovies();
-        addAllMoviesToModel(model,films);
-        // On ajoute les composants
         fichier.add(majBD);
         fichier.add(rechMot);
         fichier.add(quit);
         view.add(movieView);
         view.add(genreView);
         aPropos.add(about);
-        menuBar.add(fichier);
-        menuBar.add(view);
-        menuBar.add(aPropos);
-        this.setJMenuBar(menuBar);
-        this.getContentPane().add(princ);
-        this.setVisible(true);
+
+        jm.add(fichier);
+        jm.add(view);
+        jm.add(aPropos);
+
+        return jm;
     }
 
+    private JPanel buildTablePanel(AbstractTableModel model){
+        JPanel pane = new JPanel();
+        pane.setLayout(new BorderLayout());
+        JTable table = new JTable(model);
+        table.setDefaultRenderer(Integer.class, new IntegerCellRenderer());
+        //The scrollPane for table
+        JScrollPane spane = new JScrollPane(table);
+        pane.add(spane);
+        return pane;
+    }
     private void majBD()
     {
         JFileChooser fc = new JFileChooser();
@@ -148,7 +173,7 @@ final public class CMB_gui extends JFrame{
             CMB.findFiles(selFile);
         }
         final long endTime = System.currentTimeMillis();
-        System.out.println(/*"Fait le " + CMB.dateActuelle() + " en " + */(endTime - startTime)/* + " ms"*/);
+        System.out.println("Fait le " + CMB.dateActuelle() + " en " + (endTime - startTime) + " ms");
     }
 
     private void addAllMoviesToModel(DataTableModel model, Movie[] movies) {

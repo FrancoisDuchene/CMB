@@ -11,7 +11,7 @@ A lightweight movie database manager using *SQLite* and *Swing*.
 
 Java 8 is needed to run the project.
 
-Current version is 0.4.1
+Current version is 0.4.5
 
 Build with maven. UI made with *Java Swing*. 
 
