@@ -37,6 +37,7 @@ import static main.Analyse.filtreExtension;
  */
 public class CMB {
     private static final boolean debug = false;
+    private static final String filterFileName = cheminBD() + inter() + "filter";
     private static SqliteManager app;
     private CMB(){}
 
@@ -104,18 +105,22 @@ public class CMB {
                 else if (nomSuf.endsWith("avi")) {
                     final String path = file2.getAbsolutePath();
                     final String nom = filtreExtension(nomSuf);
-                    app.insertUpdateFilm(true,0,nom,path,".avi","","",0,null,1);
+                    //final String[] valeurs = analyseMovieFileName(nomSuf);
+                    app.insertUpdateFilm(true,0,nom,path,"avi","","",0,null,1);
                 }else if (nomSuf.endsWith("mp4")) {
                     final String path = file2.getPath();
                     final String nom = filtreExtension(nomSuf);
+                    //final String[] valeurs = analyseMovieFileName(nomSuf);
                     app.insertUpdateFilm(true,0,nom,path,"mp4","","",0,null,1);
                 }else if (nomSuf.endsWith("mkv")) {
                     final String path = file2.getPath();
                     final String nom = filtreExtension(nomSuf);
+                    //final String[] valeurs = analyseMovieFileName(nomSuf);
                     app.insertUpdateFilm(true,0,nom,path,"mkv","","",0,null,1);
                 }else if (nomSuf.endsWith("mov")) {
                     final String path = file2.getPath();
                     final String nom = filtreExtension(nomSuf);
+                    //final String[] valeurs = analyseMovieFileName(nomSuf);
                     app.insertUpdateFilm(true,0,nom,path,"mov","","",0,null,1);
                 }
             }
@@ -168,31 +173,27 @@ public class CMB {
         }
         return false;
     }
-    public static String dateActuelle()
-    {
+    public static String dateActuelle() {
         DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         LocalDate localDate = LocalDate.now();
         return dateFormat.format(localDate);
     }
-    private static String cheminBD()
-    {
-        String path = null;
+    private static String cheminBD() {
         final String homePath = System.getProperty("user.home");
         final String OS = getOsName();
         if(OS.contains("Windows")){
-            path = homePath + "\\BaseDonnee";
+            return homePath + "\\BaseDonnee";
         }else if (OS.contains("Linux")){
-            path = homePath + "/BaseDonnee";
+            return homePath + "/BaseDonnee";
         }else{
             System.err.println("Error OS not supported");
             System.exit(-1);
         }
-        return path;
+        return null;
     }
 
 
-    private static String inter()
-    {
+    private static String inter() {
         return File.separator;
     }
 
